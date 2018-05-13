@@ -40,9 +40,34 @@ class Company extends Component {
             storageContract.deployed().then((instance) => {
                 deployedInstance = instance
                 mAccounts = accounts
-                console.log(mAccounts)
             })
         })
+    }
+
+    addData(data) {
+        let gasEstimate
+        deployedInstance.addData.estimateGas(data.ID1, data.ID2, data.address)
+            .then((result) => {
+                gasEstimate = result * 2
+                console.log("Estimated gas to add an apartment: " + gasEstimate)
+            })
+            .then((result) => {
+                deployedInstance.addData.estimateGas(data.ID1, data.ID2, data.address, {
+                    from: mAccounts[0],
+                    gas: gasEstimate,
+                    gasPrice: this.state.web3.eth.gasPrice
+                })
+            })
+            .then((result) => {
+                //TODO Update entry ID
+            })
+    }
+
+    getData(entryId) {
+        deployedInstance.getData.call(entryId, { from: mAccounts[0] })
+            .then((result) => {
+                //TODO Update ID1 and ID2
+            })
     }
 
     submit(event) {
@@ -61,6 +86,7 @@ class Company extends Component {
             }
             // aapky kaam ka object
             console.log(Obj);
+            this.addData(data)
         }
     }
 
@@ -77,6 +103,7 @@ class Company extends Component {
             }
             // aapky kaam ka object
             console.log(Obj);
+            this.getData(entryId)
         }
     }
 

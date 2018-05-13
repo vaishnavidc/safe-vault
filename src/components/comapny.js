@@ -68,8 +68,12 @@ class Company extends Component {
     }
 
     dropdownChanged(event){
-        console.log(this, event.target.value)
-        if(event.target.value === 'Custom'){
+        if(event.target.value === 'Average' || event.target.value === 'Fast'){
+            document.getElementById('editTitle').value = 0;
+            document.getElementById('editTitle').disabled = true;
+
+        }
+        else if(event.target.value === 'Custom'){
             document.getElementById('editTitle').disabled = false
         }
     }

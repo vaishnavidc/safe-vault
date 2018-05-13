@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
-import {Navbar, NavItem} from 'react-materialize';
+import {Navbar} from 'react-bootstrap';
 
 class CustomNavbar extends Component {
 
     render() {
         return (
-            <Navbar className = 'teal lighten-1' brand='Navbar' right>
-        </Navbar>
+            <Navbar style = {{backgroundColor : '#2BBBAD'}}>
+              <Navbar.Brand>
+                <a href="#" style= {{fontSize : 18}}>Read Write Blockchain</a>
+              </Navbar.Brand>
+          </Navbar>
         )
     }
 }

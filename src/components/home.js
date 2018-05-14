@@ -1,57 +1,102 @@
 import React, { Component } from 'react';
 import { Tab, Tabs, Input, Row, Button, Col } from 'react-materialize';
-import {Label} from 'react-bootstrap'
 
+import getWeb3 from '../utils/getWeb3'
+import StorageContract from '../../build/contracts/Storage.json'
+
+const contract = require('truffle-contract')
+
+var storageContract
+var deployedInstance
+var mAccounts
 
 class Company extends Component {
     constructor(props) {
         super(props);
+
         this.state = {
-            gasCostState : 'Average',
-            customStateValue : 0,
-            EntryID : 'ID',
-            ID1Read : '123213',
-            ID2Read : '23421rf223'
+            web3: null,
+            gasCostState: 'Average',
+            customStateValue: 0,
+            EntryID: 'ID',
+            ID1Read: '123213',
+            ID2Read: '23421rf223'
         }
     }
 
+    componentWillMount() {
+        getWeb3
+            .then(results => {
+                this.setState({
+                    web3: results.web3
+                })
+                this.instantiateContract()
+            })
+            .catch(() => {
+                console.log('Error finding web3.')
+            })
+    }
 
-    submit(event) {
+    instantiateContract() {
+        storageContract = contract(StorageContract)
+        storageContract.setProvider(this.state.web3.currentProvider)
+
+        this.state.web3.eth.getAccounts((error, accounts) => {
+            storageContract.deployed().then((instance) => {
+                deployedInstance = instance
+                mAccounts = accounts
+            })
+        })
+    }
+
+    addData(data) {
+        let gasEstimate
+        deployedInstance.addData.estimateGas(data.ID1, data.ID2, data.address)
+            .then((result) => {
+                gasEstimate = result * 2
+                console.log("Estimated gas to add an apartment: " + gasEstimate)
+            })
+            .then((result) => {
+                deployedInstance.addData.estimateGas(data.ID1, data.ID2, data.address, {
+                    from: mAccounts[0],
+                    gas: gasEstimate,
+                    gasPrice: this.state.web3.eth.gasPrice
+                })
+            })
+            .then((result) => {
+                //TODO Update entry ID
+            })
+    }
+
+    getData(entryId) {
+        deployedInstance.getData.call(entryId, { from: mAccounts[0] })
+            .then((result) => {
+                //TODO Update ID1 and ID2
+            })
+    }
+
+    writeSubmit(event) {
         event.preventDefault();
-        if (this.refs.ID1.state.value === undefined || this.refs.ID2.state.value === undefined || this.refs.Address.state.value === undefined || this.refs.PrivateKey.state.value === undefined || this.state.EntryID === undefined ) {
+        if (this.refs.ID1.state.value === undefined || this.refs.ID2.state.value === undefined || this.refs.Address.state.value === undefined || this.refs.PrivateKey.state.value === undefined || this.state.EntryID === undefined) {
             alert("All the fields are required");
         }
         else {
-            let Obj;
-            // if(this.state.gasCostState == 'custom'){
-            // Obj = {
-            //     ID1: this.refs.ID1.state.value,
-            //     ID2: this.refs.ID2.state.value,
-            //     address: this.refs.Address.state.value,
-            //     privateKey: this.refs.PrivateKey.state.value,
-            //     entryId: this.state.EntryID,
-            //     gasCost : this.refs.GasCost.state.value,
-            //     customStateValue : this.state.customStateValue
-            // }
-            // }
-            // else{
-            Obj = {
-                    ID1: this.refs.ID1.state.value,
-                    ID2: this.refs.ID2.state.value,
-                    address: this.refs.Address.state.value,
-                    privateKey: this.refs.PrivateKey.state.value,
-                    entryId: this.state.EntryID,
-                    gasCost : this.refs.GasCost.state.value,
-                    customStateValue : this.refs.customStateValue.state.value
-
-                }
-            // }
+            let Obj = {
+                ID1: this.refs.ID1.state.value,
+                ID2: this.refs.ID2.state.value,
+                address: this.refs.Address.state.value,
+                privateKey: this.refs.PrivateKey.state.value,
+                entryId: this.state.EntryID,
+                gasCost: this.refs.GasCost.state.value,
+                customStateValue: this.refs.customStateValue.state.value
+            }
             // aapky kaam ka object
             console.log(Obj);
+            this.addData(Obj)
         }
     }
 
-    readClicked(event){
+    readSubmit(event) {
         event.preventDefault();
         if (this.refs.EntryIDRead.state.value === undefined ) {
             alert("All the fields are required");
@@ -64,6 +109,7 @@ class Company extends Component {
             }
             // aapky kaam ka object
             console.log(Obj);
+            this.getData(Obj.entryId)
         }
     }
 
@@ -144,22 +190,5 @@ class Company extends Component {
         )
     }
 }
-
-// function mapStateToProp(state) {
-//     console.log(state)
-//     return ({
-//         user: state.root.currentUser,
-//         userID: state.root.userID
-//     })
-// }
-
-
-// function mapDispatchToProp(dispatch) {
-//     return ({
-//         pushAdsToFirebase: (adInfo, uid) => {
-//             dispatch(pushAdsToFirebase(adInfo, uid))
-//         }
-//     })
-// }
 
 export default (Company);

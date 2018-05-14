@@ -4,7 +4,7 @@ import {
   Route
 } from 'react-router-dom';
 import CustomNavbar from '../components/navbar'
-import Company from '../components/comapny'
+import Company from '../components/home'
 import history from '../history';
 
 const BasicRouting = (props) => {

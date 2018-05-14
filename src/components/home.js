@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Tab, Tabs, Input, Row, Button, Col } from 'react-materialize';
+import {Label} from 'react-bootstrap';
 
 import getWeb3 from '../utils/getWeb3'
 import StorageContract from '../../build/contracts/Storage.json'
@@ -18,9 +19,9 @@ class Company extends Component {
             web3: null,
             gasCostState: 'Average',
             customStateValue: 0,
-            EntryID: 'ID',
-            ID1Read: '123213',
-            ID2Read: '23421rf223'
+            EntryID: '',
+            ID1Read: '',
+            ID2Read: ''
         }
     }
 
@@ -51,46 +52,53 @@ class Company extends Component {
 
     addData(data) {
         let gasEstimate
-        deployedInstance.addData.estimateGas(data.ID1, data.ID2, data.address)
+        return deployedInstance.addData.estimateGas(data.ID1, data.ID2, data.address)
             .then((result) => {
                 gasEstimate = result * 2
-                console.log("Estimated gas to add an apartment: " + gasEstimate)
+                console.log("Estimated gas to add data: " + gasEstimate)
             })
-            .then((result) => {
-                deployedInstance.addData.estimateGas(data.ID1, data.ID2, data.address, {
-                    from: mAccounts[0],
+            .then(() => {
+                return deployedInstance.addData(data.ID1, data.ID2, data.address, {
+                    from: data.address,
                     gas: gasEstimate,
                     gasPrice: this.state.web3.eth.gasPrice
                 })
             })
             .then((result) => {
-                //TODO Update entry ID
+                console.log("The entry ID is: " + result.logs[0].args.id)
+                this.setState({ EntryID: result.logs[0].args.id })
             })
     }
 
     getData(entryId) {
-        deployedInstance.getData.call(entryId, { from: mAccounts[0] })
+        return deployedInstance.getData.call(entryId, { from: mAccounts[0] })
             .then((result) => {
-                //TODO Update ID1 and ID2
+                console.log("ID1: " + result[0] + ", ID2: " + result[1])
+                this.setState({ ID1Read: result[0], ID2Read: result[1] })
             })
     }
 
     writeSubmit(event) {
         event.preventDefault();
-        if (this.refs.ID1.state.value === undefined || this.refs.ID2.state.value === undefined || this.refs.Address.state.value === undefined || this.refs.PrivateKey.state.value === undefined || this.state.EntryID === undefined) {
+        if (this.refs.ID1.state.value === undefined 
+            || this.refs.ID2.state.value === undefined 
+            // || this.refs.Address.state.value === undefined 
+            // || this.refs.PrivateKey.state.value === undefined 
+            || this.state.EntryID === undefined
+        ) 
+            {
             alert("All the fields are required");
         }
         else {
             let Obj = {
                 ID1: this.refs.ID1.state.value,
                 ID2: this.refs.ID2.state.value,
-                address: this.refs.Address.state.value,
+                address: mAccounts[0],
                 privateKey: this.refs.PrivateKey.state.value,
                 entryId: this.state.EntryID,
                 gasCost: this.refs.GasCost.state.value,
                 customStateValue: this.refs.customStateValue.state.value
             }
-            // aapky kaam ka object
             console.log(Obj);
             this.addData(Obj)
         }
@@ -107,7 +115,6 @@ class Company extends Component {
                 ID2: this.state.ID2Read,
                 entryId: this.refs.EntryIDRead.state.value,
             }
-            // aapky kaam ka object
             console.log(Obj);
             this.getData(Obj.entryId)
         }

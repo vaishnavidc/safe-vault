@@ -163,7 +163,7 @@ class Company extends Component {
                             </Row >
                             <Row>
                             <div > Entry ID: </div>
-                            <Label style = {{color : 'blue'}}>{this.state.EntryID}</Label>
+                            {/* <Label style = {{color : 'blue'}}>{this.state.EntryID}</Label> */}
                             </Row>
                             <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin : 0}}>Submit</Button>
                         </form>

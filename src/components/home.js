@@ -136,7 +136,7 @@ class Company extends Component {
             <div>
                 <Tabs className='tab-demo z-depth-1' active>
                     <Tab title="Write" active>
-                        <form onSubmit={this.submit.bind(this)}>
+                        <form onSubmit={this.writeSubmit.bind(this)}>
                             <br />
                             <Row style={{marginBottom : 0}}>
                             <div > Data: </div>
@@ -163,14 +163,14 @@ class Company extends Component {
                             </Row >
                             <Row>
                             <div > Entry ID: </div>
-                            {/* <Label style = {{color : 'blue'}}>{this.state.EntryID}</Label> */}
+                            <Label style = {{color : 'blue'}}>{this.state.EntryID}</Label>
                             </Row>
                             <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin : 0}}>Submit</Button>
                         </form>
                     </Tab>
                     {/* Read Tab */}
                     <Tab title="Read">
-                    <form onSubmit={this.readClicked.bind(this)}>
+                    <form onSubmit={this.readSubmit.bind(this)}>
                             <br />
                             <Row>
                             <div > Data: </div>

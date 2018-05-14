@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Tab, Tabs, Input, Row, Button, Col } from 'react-materialize';
 import { Label } from 'react-bootstrap';
-
 import getWeb3 from '../utils/getWeb3'
 import StorageContract from '../../build/contracts/Storage.json'
 
@@ -26,7 +25,6 @@ class Company extends Component {
             web3: null,
             gasLimit: 0,
             gasPrice: 0,
-            customStateValue: 0,
             EntryID: '',
             ID1Read: '',
             ID2Read: ''
@@ -160,13 +158,6 @@ class Company extends Component {
         customGasPrice = event.target.value
     }
 
-    customStateValue(event) {
-        console.log(this, event.target.value)
-        this.setState({
-            customStateValue: event.target.value
-        })
-    }
-
     render() {
         return (
             <div>
@@ -205,6 +196,7 @@ class Company extends Component {
                             <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
                         </form>
                     </Tab>
+                    
                     {/* Read Tab */}
                     <Tab title="Read">
                         <form onSubmit={this.readSubmit.bind(this)}>

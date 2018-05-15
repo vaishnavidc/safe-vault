@@ -7,10 +7,9 @@ contract Storage is Repository, Ownable {
 
     event DataAdded(bytes32 id);
 
-    function addData(string _id1, string _id2, address _toCharge) public {
-        require (msg.value != 0);
-        bytes32 id = keccak256(_id1, _id2, _toCharge, now);
-        data[id] = Data(_id1, _id2, _toCharge);
+    function addData(string _id1, string _id2, address _addressToCharge) public {
+        bytes32 id = keccak256(_id1, _id2, _addressToCharge, now);
+        data[id] = Data(_id1, _id2, _addressToCharge);
         emit DataAdded(id);
     }
 

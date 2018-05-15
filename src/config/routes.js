@@ -4,15 +4,22 @@ import {
   Route
 } from 'react-router-dom';
 import CustomNavbar from '../components/navbar'
-import Company from '../components/home'
-import history from '../history';
+import Home from '../components/home';
+import Read from '../components/read'
+import Write from '../components/write'
+import createBrowserHistory from 'history/createBrowserHistory';
+
+const customHistory = createBrowserHistory();
 
 const BasicRouting = (props) => {
   return ( 
-    <Router history={history}>
+    <Router history={customHistory}>
     <div>
         <CustomNavbar />
-        <Route path="/" component={Company} />
+        <Route path="/" component={Home} />
+        <Route exact path="/read" component={Read} />
+        <Route exact path="/write" component={Write} />
+
     </div>
     </Router>
   )

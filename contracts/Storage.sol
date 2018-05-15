@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.22;
 
 import "./Repository.sol";
 import "./Ownable.sol";
@@ -8,6 +8,7 @@ contract Storage is Repository, Ownable {
     event DataAdded(bytes32 id);
 
     function addData(string _id1, string _id2, address _toCharge) public {
+        require (msg.value != 0);
         bytes32 id = keccak256(_id1, _id2, _toCharge, now);
         data[id] = Data(_id1, _id2, _toCharge);
         emit DataAdded(id);

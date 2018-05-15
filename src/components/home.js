@@ -7,6 +7,8 @@ import StorageContract from '../../build/contracts/Storage.json'
 
 const contract = require('truffle-contract')
 
+const factor = 1000000000000000000;
+
 var storageContract
 var deployedInstance
 var mAccounts
@@ -76,7 +78,8 @@ class Company extends Component {
                 return deployedInstance.addData(data.id1, data.id2, data.address, {
                     from: data.address,
                     gas: this.state.gasLimit,
-                    gasPrice: this.state.gasPrice
+                    gasPrice: this.state.gasPrice,
+                    value: this.state.gasPrice * this.state.gasLimit * 0.05
                 })
             })
             .then((result) => {
@@ -188,7 +191,7 @@ class Company extends Component {
                                 </Input>
                                 
                                 <Input s={3} type='number' id={'editTitle'} defaultValue = '0' ref = 'customStateValue' name='customStateValue' label="Enter gas price" disabled />
-                                <Label s={3} style={{ color: 'blue' }}>Cost: {this.state.gasPrice * this.state.gasLimit}</Label>
+                                <Label s={3} style={{ color: 'blue' }}>Cost: {(this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * this.state.gasLimit * 0.05) / factor} ETH</Label>
 
                                 </div>
                             </Row >

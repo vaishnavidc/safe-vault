@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Input, Row, Button, Col } from 'react-materialize';
 
 import getWeb3 from '../utils/getWeb3'
-import StorageContract from '../../build/contracts/Storage.json'
 
 const contract = require('truffle-contract')
 

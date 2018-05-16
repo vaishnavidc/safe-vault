@@ -36,23 +36,29 @@ class Read extends Component {
     }
 
     instantiateContract() {
-        storageContract = contract(StorageContract)
-        storageContract.setProvider(web3.currentProvider)
+        var contract = web3.eth.contract([ { "constant": false, "inputs": [ { "name": "_id1", "type": "string" }, { "name": "_id2", "type": "string" }, { "name": "_addressToCharge", "type": "address" } ], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [ { "name": "id", "type": "bytes32" } ], "name": "getData", "outputs": [ { "name": "", "type": "string" }, { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [ { "name": "", "type": "address" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "newOwner", "type": "address" } ], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [ { "indexed": false, "name": "id", "type": "bytes32" } ], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" } ], "name": "OwnershipTransferred", "type": "event" } ])
+        storageContract = contract.at("0xa70adc7e42e54a32e66e93f410710b86ffd03872");
 
         web3.eth.getAccounts((error, accounts) => {
-            storageContract.deployed().then((instance) => {
-                deployedInstance = instance
-                mAccounts = accounts
-            })
+            if (accounts.length == 0) {
+                alert("Metamask not set up.")
+            }
+            mAccounts = accounts
+            var accountInterval = setInterval(function() {
+                if (web3.eth.accounts[0] !== mAccounts[0]) {
+                    mAccounts = web3.eth.accounts;
+                    alert("Please reload the page.");
+                }
+              }, 100);
         })
     }
 
     getData() {
-        return deployedInstance.getData.call(this.state.entryId, { from: mAccounts[0] })
-            .then((result) => {
-                console.log("ID1: " + result[0] + ", ID2: " + result[1])
-                this.setState({ id1: result[0], id2: result[1] })
-            })
+        return storageContract.getData.call(this.state.entryId, { from: mAccounts[0] }, ((error, result) => {
+            console.log(result)
+            console.log("ID1: " + result[0] + ", ID2: " + result[1])
+            this.setState({ id1: result[0], id2: result[1] })
+        }))
     }
 
     submit(event){

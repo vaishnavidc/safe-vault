@@ -8,5 +8,5 @@ contract Repository {
         address toCharge;
     }
 
-    mapping(bytes32 => Data) public data;
+    mapping(bytes32 => Data) internal data;
 }

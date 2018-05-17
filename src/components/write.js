@@ -9,7 +9,6 @@ const factor = 1000000000000000000;
 
 var storageContract
 var mAccounts
-var customGasPrice = 0
 var data = {
     id1: '',
     id2: '',
@@ -69,9 +68,6 @@ class Write extends Component {
                 else if (currentState === 'Fast') {
                     this.setState({ gasPrice: res * 2, gasLimit: result })
                 }
-                else if (currentState === 'Custom') {
-                    this.setState({ gasPrice: customGasPrice, gasLimit: result })
-                }
             }))
         }))    
     }
@@ -88,9 +84,6 @@ class Write extends Component {
                 }
                 else if (currentState === 'Fast') {
                     this.setState({ gasPrice: res * 2, gasLimit: result })
-                }
-                else if (currentState === 'Custom') {
-                    this.setState({ gasPrice: customGasPrice, gasLimit: result })
                 }
 
                 return storageContract.addData(data.id1, data.id2, data.address, {
@@ -125,8 +118,6 @@ class Write extends Component {
         }
         if (data.id1 === undefined
             || data.id2 === undefined
-            // || data.address === undefined 
-            // || data.private === undefined 
             || this.state.gasCostState === 'Please Select'
         ) {
             alert("All the fields are required");
@@ -159,18 +150,8 @@ class Write extends Component {
     gasCostHandler(event) {
         currentState = event.target.value
         if (currentState === 'Average' || currentState === 'Fast') {
-            document.getElementById('editTitle').disabled = true;
             this.estimateGas()
         }
-        else if (currentState === 'Custom') {
-            document.getElementById('editTitle').disabled = false
-            this.estimateGas()
-        }
-    }
-
-    customStateValueHandler(event) {
-        customGasPrice = event.target.value
-        this.estimateGas()
     }
 
     render() {
@@ -189,18 +170,14 @@ class Write extends Component {
                         <Input s={6} type='text' value={this.state.privateKey} onChange={this.privateKeyHandler.bind(this)} label="Private Key" name='PrivateKey' />
                     </Row> */}
                     <Row style={{ marginBottom: 0 }}>
-                        <div>Transaction Options:</div>
+                        <div>Transaction Speed:</div>
                         <div >
                             <Input s={3} type='select' value={this.state.gasCostState} onChange={this.gasCostHandler.bind(this)} >
                                 <option value='Please select'>Please select</option>
                                 <option value='Fast'>Fast</option>
                                 <option value='Average'>Average</option>
-                                <option value='Custom' >Custom</option>
                             </Input>
-
-                            <Input s={3} type='number' id={'editTitle'} value={this.state.customStateValue} name='customStateValue' onChange={this.customStateValueHandler.bind(this)} label="Enter gas price (gwei)" disabled />
-                            <Label s={3} style={{ color: 'blue' }}>Cost: {(this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * this.state.gasLimit * 0.05) / factor} ETH</Label>
-
+                            <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * this.state.gasLimit * 0.05) / factor} ETH</Label>
                         </div>
                     </Row >
                     <Row>

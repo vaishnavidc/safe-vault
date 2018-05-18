@@ -17,9 +17,8 @@ class Read extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            id1: '',
-            id2: '',
-            entryId: ''
+            key: '',
+            value: ''
         }
     }
 
@@ -35,8 +34,8 @@ class Read extends Component {
     }
 
     instantiateContract() {
-        var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_id1", "type": "string" }, { "name": "_id2", "type": "string" }, { "name": "_addressToCharge", "type": "address" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [{ "name": "id", "type": "bytes32" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }, { "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "id", "type": "bytes32" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }])
-        storageContract = contract.at("0xa70adc7e42e54a32e66e93f410710b86ffd03872");
+        var contract = web3.eth.contract([ { "constant": false, "inputs": [ { "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_addressToCharge", "type": "address" } ], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "anonymous": false, "inputs": [ { "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" } ], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" } ], "name": "OwnershipTransferred", "type": "event" }, { "constant": false, "inputs": [ { "name": "newOwner", "type": "address" } ], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "constant": true, "inputs": [ { "name": "_key", "type": "string" } ], "name": "getData", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [ { "name": "", "type": "address" } ], "payable": false, "stateMutability": "view", "type": "function" } ])
+        storageContract = contract.at("0xee0d8ac2a97fbe516b1c2e83ea689762f6f21112");
 
         web3.eth.getAccounts((error, accounts) => {
             if (accounts.length == 0) {
@@ -53,17 +52,17 @@ class Read extends Component {
     }
 
     getData() {
-        return storageContract.getData.call(this.state.entryId, { from: mAccounts[0] }, ((error, result) => {
+        console.log(this.state.key)
+        return storageContract.getData.call(this.state.key, { from: mAccounts[0] }, ((error, result) => {
             console.log(result)
-            console.log("ID1: " + result[0] + ", ID2: " + result[1])
-            this.setState({ id1: result[0], id2: result[1] })
+            this.setState({ value: result })
         }))
     }
 
     submit(event) {
         event.preventDefault();
-        if (this.state.entryId === undefined) {
-            alert("All the fields are required");
+        if (this.state.key === undefined) {
+            alert("Key is required");
         }
         else {
             this.getData()
@@ -72,7 +71,7 @@ class Read extends Component {
 
     EntryID(event) {
         this.setState({
-            entryId: event.target.value
+            key: event.target.value
         })
     }
 
@@ -83,12 +82,11 @@ class Read extends Component {
                     <br />
                     <Row>
                         <div > Data: </div>
-                        <Col s={1}>ID1:</Col><Col s={5}>{this.state.id1}</Col>
-                        <Col s={1}>ID2:</Col><Col s={5}>{this.state.id2}</Col>
+                        <Col s={1}>Value:</Col><Col s={5}>{this.state.value}</Col>
                     </Row>
                     <Row s={12}>
-                        <div > Entry ID: </div>
-                        <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Type ID here" />
+                        <div > Key: </div>
+                        <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter key here." />
                     </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
                 </form>

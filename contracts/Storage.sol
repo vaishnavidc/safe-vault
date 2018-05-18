@@ -5,17 +5,16 @@ import "./Ownable.sol";
 
 contract Storage is Repository, Ownable {
 
-    event DataAdded(bytes32 id);
+    event DataAdded(string key, string value);
 
-    function addData(string _id1, string _id2, address _addressToCharge) public payable {
-        bytes32 id = keccak256(_id1, _id2, _addressToCharge, now);
-        data[id] = Data(_id1, _id2, _addressToCharge);
+    function addData(string _key, string _value, address _addressToCharge) public payable {
+        data[_key] = Data(_value, _addressToCharge);
         owner.transfer(msg.value);
-        emit DataAdded(id);
+        emit DataAdded(_key, _value);
     }
 
-    function getData(bytes32 id) public view returns(string, string) {
-        return (data[id].id1, data[id].id2);
+    function getData(string _key) public view returns(string) {
+        return (data[_key].value);
     }
 
     constructor() public {

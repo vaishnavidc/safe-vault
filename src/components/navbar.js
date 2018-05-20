@@ -7,7 +7,7 @@ class CustomNavbar extends Component {
         return (
             <Navbar style = {{backgroundColor : '#2BBBAD'}}>
               <Navbar.Brand>
-                <a href="#" style= {{fontSize : 18}}>BlockSave</a>
+                <a href="#" style= {{fontSize : 20}}>BlockSave</a>
               </Navbar.Brand>
           </Navbar>
         )

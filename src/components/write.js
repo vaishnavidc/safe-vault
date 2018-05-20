@@ -176,7 +176,7 @@ class Write extends Component {
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div > Data: </div>
-                        <textarea rows="30" style={{"height": "700px", "maxHeight": "700px"}} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
+                        <textarea rows="30" style={{"height": "350px", "maxHeight": "700px"}} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div>Transaction Speed:</div>

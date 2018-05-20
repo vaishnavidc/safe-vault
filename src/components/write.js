@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Tab, Tabs, Input, Row, Button, Col } from 'react-materialize';
 import { Label } from 'react-bootstrap'
 import { Nav, NavItem } from 'react-bootstrap';
+import Textarea from 'react-expanding-textarea'
 
 import getWeb3 from '../utils/getWeb3'
 
@@ -132,6 +133,7 @@ class Write extends Component {
             || this.state.gasCostState === 'Please Select'
         ) {
             alert("All the fields are required");
+            return
         }
         if (mAccounts.length == 0) {
             alert("Metamask not set up")
@@ -174,13 +176,8 @@ class Write extends Component {
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div > Data: </div>
-                        <textarea type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
+                        <Textarea rows="1" maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
                     </Row>
-                    {/* <Row style={{ marginBottom: 0 }}>
-                        <div>Credentials:</div>
-                        <Input s={6} type='text' value={this.state.address} onChange={this.addressHandler.bind(this)} name='Address' label="Address" />
-                        <Input s={6} type='text' value={this.state.privateKey} onChange={this.privateKeyHandler.bind(this)} label="Private Key" name='PrivateKey' />
-                    </Row> */}
                     <Row style={{ marginBottom: 0 }}>
                         <div>Transaction Speed:</div>
                         <div >
@@ -194,7 +191,6 @@ class Write extends Component {
                         </div>
                     </Row >
                     <Row>
-                        {/* <div > Entry ID: </div> */}
                         <Label style={{ color: 'blue' }}>{this.state.EntryID}</Label>
                     </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>

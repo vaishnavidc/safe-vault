@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { Input, Row, Button, Col } from 'react-materialize';
+import { Label } from 'react-bootstrap'
+import nl2br from 'react-newline-to-break';
 
 import getWeb3 from '../utils/getWeb3'
 
@@ -34,7 +36,7 @@ class Read extends Component {
     }
 
     instantiateContract() {
-        var contract = web3.eth.contract([ { "constant": false, "inputs": [ { "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_addressToCharge", "type": "address" } ], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "anonymous": false, "inputs": [ { "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" } ], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" } ], "name": "OwnershipTransferred", "type": "event" }, { "constant": false, "inputs": [ { "name": "newOwner", "type": "address" } ], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "constant": true, "inputs": [ { "name": "_key", "type": "string" } ], "name": "getData", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [ { "name": "", "type": "address" } ], "payable": false, "stateMutability": "view", "type": "function" } ])
+        var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_addressToCharge", "type": "address" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }])
         storageContract = contract.at("0xee0d8ac2a97fbe516b1c2e83ea689762f6f21112");
 
         web3.eth.getAccounts((error, accounts) => {
@@ -59,6 +61,10 @@ class Read extends Component {
         }))
     }
 
+    formatText() {
+
+    }
+
     submit(event) {
         event.preventDefault();
         if (this.state.key === undefined) {
@@ -75,6 +81,15 @@ class Read extends Component {
         })
     }
 
+    NewLineToBr({children = ""}){
+        return children.split('\n').reduce(function (arr,line) {
+          return arr.concat(
+            line,
+            <br />
+          );
+        },[]);
+      }
+
     render() {
         return (
             <div>
@@ -82,8 +97,14 @@ class Read extends Component {
                     <br />
                     <Row>
                         <div > Data: </div>
-                        <Col s={1}>Value:</Col><Col s={5}>{this.state.value}</Col>
+                        {/* <Col s={1}>Value:</Col> */}
                     </Row>
+                    {/* <Row> */}
+                        {/* <Label rows="1" maxLength="3000" className="textarea" type='text' s={5}>{this.state.value}</Label> */}
+                        <p>
+                            {nl2br(this.state.value)}
+                        </p>
+                    {/* </Row> */}
                     <Row s={12}>
                         <div > Key: </div>
                         <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter key here." />
@@ -95,6 +116,5 @@ class Read extends Component {
         )
     }
 }
-
 
 export default (Read);

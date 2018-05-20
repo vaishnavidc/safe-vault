@@ -5,6 +5,11 @@ class Company extends Component {
 
     componentWillMount(){
         this.props.history.push('/write');
+        document.title = "BlockSave"
+    }
+
+    componentDidMount() {
+        
     }
 
     readBtnHandler(){

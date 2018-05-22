@@ -20,6 +20,7 @@ var currentState = 'Please select'
 var web3 = null
 
 var gasPriceInUSD = 0
+var fractionToCharge = 1000
 
 class Write extends Component {
     constructor(props) {
@@ -76,8 +77,7 @@ class Write extends Component {
 
     estimateGas() {
         return storageContract.addData.estimateGas(data.key, data.value, data.address, ((error, result) => {
-            console.log(error)
-            console.log("Estimated gas: " + result)
+            console.log("Estimated startGas: " + result)
             web3.eth.getGasPrice(((err, res) => {
                 if (currentState === 'Average') {
                     this.setState({ gasPrice: res, gasLimit: result })
@@ -92,7 +92,7 @@ class Write extends Component {
     addData() {
         return storageContract.addData.estimateGas(data.key, data.value, data.address, {
             from: mAccounts[0],
-            value: web3.toWei(this.state.gasPrice * this.state.gasLimit * 0.05, 'ether')
+            value: this.state.gasPrice * fractionToCharge
         }, ((error, result) => {
             web3.eth.getGasPrice(((err, res) => {
                 if (currentState === 'Average') {
@@ -106,7 +106,7 @@ class Write extends Component {
                     from: data.address,
                     gas: this.state.gasLimit,
                     gasPrice: this.state.gasPrice,
-                    value: this.state.gasPrice * this.state.gasLimit * 0.05
+                    value: this.state.gasPrice * fractionToCharge
                 }, ((error, result) => {
                     if (error === null) {
                         alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
@@ -176,7 +176,7 @@ class Write extends Component {
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div > Data: </div>
-                        <textarea rows="30" style={{"height": "350px", "maxHeight": "700px"}} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
+                        <textarea rows="30" style={{"height": "250px", "maxHeight": "700px"}} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div>Transaction Speed:</div>
@@ -186,8 +186,8 @@ class Write extends Component {
                                 <option value='Fast'>Fast</option>
                                 <option value='Average'>Average</option>
                             </Input>
-                            <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * this.state.gasLimit * 0.05) / factor} ETH</Label>
-                            <Label s={3} style={{ color: 'blue' }}> / {((this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * this.state.gasLimit * 0.05) / factor) * gasPriceInUSD} USD</Label>
+                            <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * fractionToCharge) / factor} ETH</Label>
+                            <Label s={3} style={{ color: 'blue' }}> / {((this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * fractionToCharge) / factor) * gasPriceInUSD} USD</Label>
                         </div>
                     </Row >
                     <Row>

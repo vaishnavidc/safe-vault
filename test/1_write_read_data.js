@@ -6,7 +6,11 @@ contract('Storage', function (accounts) {
         var instance;
         return storage.deployed().then(function (i) {
             instance = i;
-            return instance.addData("key", "value", accounts[0], { from: accounts[0] });
+            return instance.addData("key", "value", accounts[0], { 
+                from: accounts[0],
+                value: web3.eth.gasPrice * 1000,
+                gasPrice: web3.eth.gasPrice
+            });
         }).then(function (result) {
             key = result.logs[0].args.key
             assert.equal(result.logs[0].event, "DataAdded", "The Log-Event should be DataAdded");

@@ -8,6 +8,9 @@ import getWeb3 from '../utils/getWeb3'
 
 const factor = 1000000000000000000;
 
+// const contractAddress = '0xee0d8ac2a97fbe516b1c2e83ea689762f6f21112'
+const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
+
 var storageContract
 var mAccounts
 var data = {
@@ -21,13 +24,13 @@ var web3 = null
 
 var gasPriceInUSD = 0
 var fractionToCharge = 1000
+var gasPrice = 0
 
 class Write extends Component {
     constructor(props) {
         super(props);
         this.state = {
             gasLimit: 0,
-            gasPrice: 0,
             transactionStateMessage: ''
         }
     }
@@ -37,6 +40,7 @@ class Write extends Component {
             .then(results => {
                 web3 = results.web3
                 this.instantiateContract()
+                this.getGasPrice()
                 this.getEthToUSD()
             })
             .catch(() => {
@@ -46,7 +50,7 @@ class Write extends Component {
 
     instantiateContract() {
         var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_addressToCharge", "type": "address" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }])
-        storageContract = contract.at("0xee0d8ac2a97fbe516b1c2e83ea689762f6f21112");
+        storageContract = contract.at(contractAddress);
 
         web3.eth.getAccounts((error, accounts) => {
             if (accounts.length == 0) {
@@ -76,51 +80,49 @@ class Write extends Component {
     }
 
     estimateGas() {
-        return storageContract.addData.estimateGas(data.key, data.value, data.address, ((error, result) => {
-            console.log("Estimated startGas: " + result)
-            web3.eth.getGasPrice(((err, res) => {
-                if (currentState === 'Average') {
-                    this.setState({ gasPrice: res, gasLimit: result })
-                }
-                else if (currentState === 'Fast') {
-                    this.setState({ gasPrice: res * 2, gasLimit: result })
-                }
+        if (currentState == 'Average' || currentState == 'Fast') {
+            return storageContract.addData.estimateGas(data.key, data.value, data.address, {
+                from: mAccounts[0],
+                value: gasPrice * fractionToCharge,
+                gasPrice: gasPrice
+            }, ((error, result) => {
+                console.log("Estimated startGas: " + result)
+                console.log(error)
+                this.setState({ gasLimit: result })
             }))
+        }
+    }
+
+    getGasPrice() {
+        web3.eth.getGasPrice(((err, res) => {
+            console.log("gasPrice: " + res)
+            gasPrice = res
         }))
     }
 
     addData() {
         return storageContract.addData.estimateGas(data.key, data.value, data.address, {
             from: mAccounts[0],
-            value: this.state.gasPrice * fractionToCharge
+            value: gasPrice * fractionToCharge
         }, ((error, result) => {
-            web3.eth.getGasPrice(((err, res) => {
-                if (currentState === 'Average') {
-                    this.setState({ gasPrice: res, gasLimit: result })
+            return storageContract.addData(data.key, data.value, data.address, {
+                from: data.address,
+                gas: this.state.gasLimit,
+                gasPrice: gasPrice,
+                value: gasPrice * fractionToCharge
+            }, ((error, result) => {
+                if (error === null) {
+                    alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
+                    var event = storageContract.DataAdded()
+                    event.watch((err, res) => {
+                        if (err === null) {
+                            this.setState({ transactionStateMessage: "Data has been saved in the blockchain. You can query data from the blockchain with this key." })
+                            alert("Transaction has been mined.")
+                        } else {
+                            this.setState({ transactionStateMessage: "Please choose a unique key. This key already exists." })
+                        }
+                    })
                 }
-                else if (currentState === 'Fast') {
-                    this.setState({ gasPrice: res * 2, gasLimit: result })
-                }
-
-                return storageContract.addData(data.key, data.value, data.address, {
-                    from: data.address,
-                    gas: this.state.gasLimit,
-                    gasPrice: this.state.gasPrice,
-                    value: this.state.gasPrice * fractionToCharge
-                }, ((error, result) => {
-                    if (error === null) {
-                        alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
-                        var event = storageContract.DataAdded()
-                        event.watch((err, res) => {
-                            if (err === null) {
-                                this.setState({ transactionStateMessage: "Data has been saved in the blockchain. You can query data from the blockchain with this key." })
-                                alert("Transaction has been mined.")
-                            } else {
-                                this.setState({ transactionStateMessage: "Please choose a unique key. This key already exists." })
-                            }
-                        })
-                    }
-                }))
             }))
         }))
     }
@@ -161,7 +163,11 @@ class Write extends Component {
 
     gasCostHandler(event) {
         currentState = event.target.value
-        if (currentState === 'Average' || currentState === 'Fast') {
+        if (currentState === 'Fast') {
+            gasPrice = gasPrice * 2
+            this.estimateGas()
+        } else if (currentState == 'Average') {
+            this.getGasPrice()
             this.estimateGas()
         }
     }
@@ -176,7 +182,7 @@ class Write extends Component {
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div > Data: </div>
-                        <textarea rows="30" style={{"height": "250px", "maxHeight": "700px"}} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
+                        <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div>Transaction Speed:</div>
@@ -186,8 +192,8 @@ class Write extends Component {
                                 <option value='Fast'>Fast</option>
                                 <option value='Average'>Average</option>
                             </Input>
-                            <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * fractionToCharge) / factor} ETH</Label>
-                            <Label s={3} style={{ color: 'blue' }}> / {((this.state.gasPrice * this.state.gasLimit + this.state.gasPrice * fractionToCharge) / factor) * gasPriceInUSD} USD</Label>
+                            <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor} ETH</Label>
+                            <Label s={3} style={{ color: 'blue' }}> / {((gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor) * gasPriceInUSD} USD</Label>
                         </div>
                     </Row >
                     <Row>

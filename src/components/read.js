@@ -5,9 +5,10 @@ import nl2br from 'react-newline-to-break';
 
 import getWeb3 from '../utils/getWeb3'
 
-const contract = require('truffle-contract')
-
 const factor = 1000000000000000000;
+
+// const contractAddress = '0xee0d8ac2a97fbe516b1c2e83ea689762f6f21112'
+const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
 
 var storageContract
 var deployedInstance
@@ -37,7 +38,7 @@ class Read extends Component {
 
     instantiateContract() {
         var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_addressToCharge", "type": "address" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }])
-        storageContract = contract.at("0xee0d8ac2a97fbe516b1c2e83ea689762f6f21112");
+        storageContract = contract.at(contractAddress);
 
         web3.eth.getAccounts((error, accounts) => {
             if (accounts.length == 0) {

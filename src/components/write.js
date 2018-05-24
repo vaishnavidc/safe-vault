@@ -5,6 +5,7 @@ import { Nav, NavItem } from 'react-bootstrap';
 import Textarea from 'react-expanding-textarea'
 
 import getWeb3 from '../utils/getWeb3'
+import ipfs from '../ipfs';
 
 const factor = 1000000000000000000;
 
@@ -31,7 +32,9 @@ class Write extends Component {
         super(props);
         this.state = {
             gasLimit: 0,
-            transactionStateMessage: ''
+            transactionStateMessage: '',
+            ipfsHash: null,
+            buffer: ''
         }
     }
 
@@ -42,6 +45,7 @@ class Write extends Component {
                 this.instantiateContract()
                 this.getGasPrice()
                 this.getEthToUSD()
+                this.startIPFSNode()
             })
             .catch(() => {
                 console.log('Error finding web3.')
@@ -172,6 +176,32 @@ class Write extends Component {
         }
     }
 
+    onUploadFile = async (event) => {
+        event.preventDefault();
+        await ipfs.add(this.state.buffer, (err, ipfsHash) => {
+            console.log(err, ipfsHash);
+            if (err == null) {
+                this.setState({ ipfsHash: ipfsHash[0].hash });
+                console.log(this.state.ipfsHash)
+                alert("File uploaded")
+            }
+        })
+    };
+
+    captureFile = (event) => {
+        event.stopPropagation()
+        event.preventDefault()
+        const file = event.target.files[0]
+        let reader = new window.FileReader()
+        reader.readAsArrayBuffer(file)
+        reader.onloadend = () => this.convertToBuffer(reader)
+    };
+
+    convertToBuffer = async (reader) => {
+        const buffer = await Buffer.from(reader.result);
+        this.setState({ buffer });
+    };
+
     render() {
         return (
             <div>
@@ -200,6 +230,20 @@ class Write extends Component {
                         <Label style={{ color: 'blue' }}>{this.state.EntryID}</Label>
                     </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
+                </form>
+                <Row>
+                </Row>
+                <form onSubmit={this.onUploadFile.bind(this)}>
+                    <input
+                        type="file"
+                        onChange={this.captureFile}
+                    />
+                    <Button
+                        bsStyle="primary"
+                        type="submit">
+                        Upload file
+                    </Button>
+                    <Label style={{ color: 'blue' }}>Hash: {this.state.ipfsHash}</Label>
                 </form>
             </div>
         )

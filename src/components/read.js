@@ -14,6 +14,8 @@ var storageContract
 var deployedInstance
 var mAccounts
 
+var fileHash = ''
+
 var web3 = null
 
 class Read extends Component {
@@ -62,10 +64,6 @@ class Read extends Component {
         }))
     }
 
-    formatText() {
-
-    }
-
     submit(event) {
         event.preventDefault();
         if (this.state.key === undefined) {
@@ -82,14 +80,18 @@ class Read extends Component {
         })
     }
 
-    NewLineToBr({children = ""}){
-        return children.split('\n').reduce(function (arr,line) {
-          return arr.concat(
-            line,
-            <br />
-          );
-        },[]);
-      }
+    onHashCHange(event) {
+        fileHash = event.target.value
+    }
+
+    downloadFile(event) {
+        event.preventDefault();
+        var link = document.createElement("a");
+        link.download = fileHash;
+        link.href = "https://ipfs.io/ipfs/" + fileHash;
+        document.body.appendChild(link);
+        link.click();
+    }
 
     render() {
         return (
@@ -98,19 +100,22 @@ class Read extends Component {
                     <br />
                     <Row>
                         <div > Data: </div>
-                        {/* <Col s={1}>Value:</Col> */}
                     </Row>
-                    {/* <Row> */}
-                        {/* <Label rows="1" maxLength="3000" className="textarea" type='text' s={5}>{this.state.value}</Label> */}
-                        <p>
-                            {nl2br(this.state.value)}
-                        </p>
-                    {/* </Row> */}
+                    <p>
+                        {nl2br(this.state.value)}
+                    </p>
                     <Row s={12}>
                         <div > Key: </div>
                         <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter key here." />
                     </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
+                </form>
+
+                <form onSubmit={this.downloadFile.bind(this)}>
+                    <Row s={12}>
+                        <Input s={6} type='text' name='FileHash' onChange={this.onHashCHange.bind(this)} label="Enter file hash here." />
+                    </Row>
+                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Download file</Button>
                 </form>
 
             </div>

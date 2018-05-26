@@ -214,20 +214,7 @@ class Write extends Component {
                         <div > Data: </div>
                         <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
                     </Row>
-                    <Row>
-                </Row>
-                <form onSubmit={this.onUploadFile.bind(this)}>
-                    <input
-                        type="file"
-                        onChange={this.captureFile}
-                    />
-                    <Button
-                        bsStyle="primary"
-                        type="submit">
-                        Upload file
-                    </Button>
-                    <Label style={{ color: 'blue' }}>Hash: {this.state.ipfsHash}</Label>
-                </form>
+                    
                     <Row style={{ marginBottom: 0 }}>
                         <div>Transaction Speed:</div>
                         <div >
@@ -246,6 +233,20 @@ class Write extends Component {
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
                 </form>
                 
+                <Row>
+                </Row>
+                <form onSubmit={this.onUploadFile.bind(this)}>
+                    <input
+                        type="file"
+                        onChange={this.captureFile}
+                    />
+                    <Button
+                        bsStyle="primary"
+                        type="submit">
+                        Upload file
+                    </Button>
+                    <Label style={{ color: 'blue' }}>Hash: {this.state.ipfsHash}</Label>
+                </form>
             </div>
         )
     }

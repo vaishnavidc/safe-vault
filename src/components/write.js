@@ -3,6 +3,7 @@ import { Tab, Tabs, Input, Row, Button, Col } from 'react-materialize';
 import { Label } from 'react-bootstrap'
 import { Nav, NavItem } from 'react-bootstrap';
 import Textarea from 'react-expanding-textarea'
+import CryptoJS from 'crypto-js';
 
 import getWeb3 from '../utils/getWeb3'
 import ipfs from '../ipfs';
@@ -27,6 +28,12 @@ var gasPriceInUSD = 0
 var fractionToCharge = 1000
 var gasPrice = 0
 
+var privateKey = ''
+
+var keySize = 256;
+var ivSize = 128;
+var iterations = 100;
+
 class Write extends Component {
     constructor(props) {
         super(props);
@@ -45,7 +52,6 @@ class Write extends Component {
                 this.instantiateContract()
                 this.getGasPrice()
                 this.getEthToUSD()
-                this.startIPFSNode()
             })
             .catch(() => {
                 console.log('Error finding web3.')
@@ -71,6 +77,27 @@ class Write extends Component {
         })
     }
 
+    encrypt(msg, pass) {
+        var salt = CryptoJS.lib.WordArray.random(128 / 8);
+
+        var key = CryptoJS.PBKDF2(pass, salt, {
+            keySize: keySize / 32,
+            iterations: iterations
+        });
+
+        var iv = CryptoJS.lib.WordArray.random(128 / 8);
+
+        var encrypted = CryptoJS.AES.encrypt(msg, key, {
+            iv: iv,
+            padding: CryptoJS.pad.Pkcs7,
+            mode: CryptoJS.mode.CBC
+
+        });
+
+        var transitmessage = salt.toString() + iv.toString() + encrypted.toString();
+        return transitmessage;
+    }
+
     getEthToUSD() {
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function () {
@@ -85,7 +112,8 @@ class Write extends Component {
 
     estimateGas() {
         if (currentState == 'Average' || currentState == 'Fast') {
-            return storageContract.addData.estimateGas(data.key, data.value, data.address, {
+            var encrypted = this.encrypt(data.value, "pass")
+            return storageContract.addData.estimateGas(data.key, encrypted, data.address, {
                 from: mAccounts[0],
                 value: gasPrice * fractionToCharge,
                 gasPrice: gasPrice
@@ -105,11 +133,12 @@ class Write extends Component {
     }
 
     addData() {
-        return storageContract.addData.estimateGas(data.key, data.value, data.address, {
+        var encrypted = this.encrypt(data.value, privateKey)
+        return storageContract.addData.estimateGas(data.key, encrypted, data.address, {
             from: mAccounts[0],
             value: gasPrice * fractionToCharge
         }, ((error, result) => {
-            return storageContract.addData(data.key, data.value, data.address, {
+            return storageContract.addData(data.key, encrypted, data.address, {
                 from: data.address,
                 gas: this.state.gasLimit,
                 gasPrice: gasPrice,
@@ -136,6 +165,7 @@ class Write extends Component {
         if (data.key === ''
             || data.value === ''
             || data.address === ''
+            || privateKey === ''
             || currentState === 'Please select'
         ) {
             alert("All the fields are required");
@@ -176,6 +206,10 @@ class Write extends Component {
         }
     }
 
+    privateKeyHandler(event) {
+        privateKey = event.target.value
+    }
+
     onUploadFile = async (event) => {
         event.preventDefault();
         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
@@ -214,7 +248,7 @@ class Write extends Component {
                         <div > Data: </div>
                         <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
                     </Row>
-                    
+
                     <Row style={{ marginBottom: 0 }}>
                         <div>Transaction Speed:</div>
                         <div >
@@ -228,11 +262,12 @@ class Write extends Component {
                         </div>
                     </Row >
                     <Row>
+                        <Input s={6} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Private Key" />
                         <Label style={{ color: 'blue' }}>{this.state.EntryID}</Label>
                     </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
                 </form>
-                
+
                 <Row>
                 </Row>
                 <form onSubmit={this.onUploadFile.bind(this)}>

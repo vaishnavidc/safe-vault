@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Input, Row, Button, Col } from 'react-materialize';
 import { Label } from 'react-bootstrap'
 import nl2br from 'react-newline-to-break';
+import CryptoJS from 'crypto-js';
 
 import getWeb3 from '../utils/getWeb3'
 
@@ -18,11 +19,17 @@ var fileHash = ''
 
 var web3 = null
 
+var key = ''
+var privateKey = ''
+
+var keySize = 256;
+var ivSize = 128;
+var iterations = 100;
+
 class Read extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            key: '',
             value: ''
         }
     }
@@ -56,18 +63,38 @@ class Read extends Component {
         })
     }
 
+    decrypt(transitmessage, pass) {
+        var salt = CryptoJS.enc.Hex.parse(transitmessage.substr(0, 32));
+        var iv = CryptoJS.enc.Hex.parse(transitmessage.substr(32, 32))
+        var encrypted = transitmessage.substring(64);
+
+        var key = CryptoJS.PBKDF2(pass, salt, {
+            keySize: keySize / 32,
+            iterations: iterations
+        });
+
+        var decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+            iv: iv,
+            padding: CryptoJS.pad.Pkcs7,
+            mode: CryptoJS.mode.CBC
+
+        })
+        return decrypted;
+    }
+
     getData() {
-        console.log(this.state.key)
-        return storageContract.getData.call(this.state.key, { from: mAccounts[0] }, ((error, result) => {
+        return storageContract.getData.call(key, { from: mAccounts[0] }, ((error, result) => {
             console.log(result)
-            this.setState({ value: result })
+            var decrypted = this.decrypt(result, privateKey).toString(CryptoJS.enc.Utf8)
+            console.log(decrypted)
+            this.setState({ value: decrypted })
         }))
     }
 
     submit(event) {
         event.preventDefault();
-        if (this.state.key === undefined) {
-            alert("Key is required");
+        if (key == '' || privateKey == '') {
+            alert("All fields are required");
         }
         else {
             this.getData()
@@ -75,13 +102,15 @@ class Read extends Component {
     }
 
     EntryID(event) {
-        this.setState({
-            key: event.target.value
-        })
+        key = event.target.value
     }
 
     onHashCHange(event) {
         fileHash = event.target.value
+    }
+
+    privateKeyHandler(event) {
+        privateKey = event.target.value
     }
 
     downloadFile(event) {
@@ -105,8 +134,9 @@ class Read extends Component {
                         {nl2br(this.state.value)}
                     </p>
                     <Row s={12}>
-                        <div > Key: </div>
-                        <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter key here." />
+                        <div > Input: </div>
+                        <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter Key here." />
+                        <Input s={6} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private key here." />
                     </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
                 </form>

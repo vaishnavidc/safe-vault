@@ -223,7 +223,7 @@ class Write extends Component {
             return
         }
         event.preventDefault();
-        
+
         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
             console.log(err, ipfsHash);
             if (err == null) {
@@ -253,15 +253,23 @@ class Write extends Component {
         return (
             <div>
                 <form onSubmit={this.submit.bind(this)}>
-                    <h4> Save encrypted data on the Blockchain </h4>
                     <br />
                     <Row style={{ marginBottom: 0 }}>
-                        <Input s={6} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Enter Key here." />
+                        <Input s={6} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Enter Key here" />
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div > Data: </div>
                         <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
                     </Row>
+
+                    <Row>
+                        <input
+                            type="file"
+                            onChange={this.captureFile}
+                        />
+                    </Row>
+
+                    <Input s={6} type="password" onChange={this.privateKeyFileHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
 
                     <Row style={{ marginBottom: 0 }}>
                         <div>Transaction Speed:</div>
@@ -276,29 +284,9 @@ class Write extends Component {
                         </div>
                     </Row >
                     <Row>
-                        <Input s={6} type="password" onChange={this.privateKeyDataHandler.bind(this)} name='privateKey' label="Enter Private Key here." />
                         <Label style={{ color: 'blue' }}>{this.state.EntryID}</Label>
                     </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Save Data</Button>
-                </form>
-
-                <Row>
-                </Row>
-                <form onSubmit={this.onUploadFile.bind(this)}>
-                <h4> Save encrypted file on the Blockchain </h4>
-
-                    <input
-                        type="file"
-                        onChange={this.captureFile}
-                    />
-                    <Input s={6} type="password" onChange={this.privateKeyFileHandler.bind(this)} name='privateKey' label="Enter Private Key here." />
-
-                    <Button
-                        bsStyle="primary"
-                        type="submit">
-                        Upload File
-                    </Button>
-                    <Label style={{ color: 'blue' }}>Hash: {this.state.ipfsHash}</Label>
                 </form>
             </div>
         )

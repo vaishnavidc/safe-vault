@@ -5,22 +5,42 @@ import "./Ownable.sol";
 
 contract Storage is Repository, Ownable {
 
-    uint constant FRACTION_TO_CHARGE = 1000;
-
-    event DataAdded(string key, string value);
+    event DataAdded(string key, string value, string fileHash);
     
-    function addData(string _key, string _value, address _addressToCharge) public payable {
-        require(msg.value >= tx.gasprice * FRACTION_TO_CHARGE);
-        data[_key] = Data(_value, _addressToCharge);
+    function addData(string _key, string _value, string _fileHash, address _addressToCharge) public payable {
+        if (keccak256(_fileHash) == keccak256("") && keccak256(_value) == keccak256("")) {
+            revert();
+        } else if (keccak256(_fileHash) == keccak256("") && keccak256(_value) != keccak256("")) {
+            require(msg.value >= dataWriteCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
+        }
+         else if (keccak256(_value) == keccak256("") && keccak256(_fileHash) != keccak256("")) {
+            require(msg.value >= fileUploadCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
+        } else {
+            require(msg.value >= fileUploadCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE + dataWriteCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
+        }
+        data[_key] = Data(_value, _addressToCharge, _fileHash);
         owner.transfer(msg.value);
-        emit DataAdded(_key, _value);
+        emit DataAdded(_key, _value, _fileHash);
     }
 
-    function getData(string _key) public view returns(string) {
-        return (data[_key].value);
+    function setExchangeRate(uint _exchangeRate) public onlyOwner {
+        ETHToUSDExchangeRate = _exchangeRate;
     }
 
-    constructor() public {
+    function setDataWriteCharge(uint _charge) public onlyOwner {
+        dataWriteCharge = _charge;
+    }
+
+    function setFileUploadCharge(uint _charge) public onlyOwner {
+        fileUploadCharge = _charge;
+    }
+
+    function getData(string _key) public view returns(string, string) {
+        return (data[_key].value, data[_key].fileHash);
+    }
+
+    constructor(/*uint _exchangeRate*/) public {
         owner = msg.sender;
+        // ETHToUSDExchangeRate = _exchangeRate;
     }
 }

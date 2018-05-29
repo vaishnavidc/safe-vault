@@ -126,31 +126,28 @@ class Read extends Component {
         return (
             <div>
                 <form onSubmit={this.submit.bind(this)}>
-                    <h4> Read encrypted data from the Blockchain </h4>
-                    <br />
-                    <Row>
+                    <div > Parameters: </div>
+                    <Row style={{ marginBottom: 0 }}>
+                        <Input s={6} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />
+                    </Row>
+                    <Row style={{ marginBottom: 0 }}>
+                        <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter Key here" />
+                    </Row>
+
+                    <Row style={{ marginBottom: 0 }}>
                         <div > Data: </div>
                     </Row>
                     <p>
                         {nl2br(this.state.value)}
                     </p>
-                    <Row s={12}>
-                        <div > Input: </div>
-                        <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter Key here." />
-                        <Input s={6} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here." />
-                    </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Read Data</Button>
                 </form>
 
-                <form onSubmit={this.downloadFile.bind(this)}>
-                    <h4> Download encrypted files from the Blockchain </h4>
-                    <Row s={12}>
-                        <Input s={6} type='text' name='FileHash' onChange={this.onHashCHange.bind(this)} label="Enter file hash here." />
-                        <Input s={6} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here." />
-                    </Row>
-                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Download File</Button>
-                </form>
-
+                <Row style={{ marginBottom: 0 }}>
+                    <form onSubmit={this.downloadFile.bind(this)}>
+                        <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Download File</Button>
+                    </form>
+                </Row>
             </div>
         )
     }

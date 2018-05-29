@@ -4,9 +4,11 @@ import { Label } from 'react-bootstrap'
 import { Nav, NavItem } from 'react-bootstrap';
 import Textarea from 'react-expanding-textarea'
 import CryptoJS from 'crypto-js';
+import FileEncryptor from 'file-encryptor'
 
 import getWeb3 from '../utils/getWeb3'
 import ipfs from '../ipfs';
+import read from './read';
 
 const factor = 1000000000000000000;
 
@@ -28,7 +30,8 @@ var gasPriceInUSD = 0
 var fractionToCharge = 1000
 var gasPrice = 0
 
-var privateKey = ''
+var privateKeyData = ''
+var privateKeyFile = ''
 
 var keySize = 256;
 var ivSize = 128;
@@ -133,7 +136,7 @@ class Write extends Component {
     }
 
     addData() {
-        var encrypted = this.encrypt(data.value, privateKey)
+        var encrypted = this.encrypt(data.value, privateKeyData)
         return storageContract.addData.estimateGas(data.key, encrypted, data.address, {
             from: mAccounts[0],
             value: gasPrice * fractionToCharge
@@ -165,7 +168,7 @@ class Write extends Component {
         if (data.key === ''
             || data.value === ''
             || data.address === ''
-            || privateKey === ''
+            || privateKeyData === ''
             || currentState === 'Please select'
         ) {
             alert("All the fields are required");
@@ -206,12 +209,21 @@ class Write extends Component {
         }
     }
 
-    privateKeyHandler(event) {
-        privateKey = event.target.value
+    privateKeyDataHandler(event) {
+        privateKeyData = event.target.value
+    }
+
+    privateKeyFileHandler(event) {
+        privateKeyFile = event.target.value
     }
 
     onUploadFile = async (event) => {
+        if (privateKeyFile === '') {
+            alert("Please enter private key first")
+            return
+        }
         event.preventDefault();
+        
         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
             console.log(err, ipfsHash);
             if (err == null) {
@@ -232,17 +244,19 @@ class Write extends Component {
     };
 
     convertToBuffer = async (reader) => {
+        console.log(reader)
         const buffer = await Buffer.from(reader.result);
-        this.setState({ buffer });
+        this.setState({ buffer: buffer });
     };
 
     render() {
         return (
             <div>
                 <form onSubmit={this.submit.bind(this)}>
+                    <h4> Save encrypted data on the Blockchain </h4>
                     <br />
                     <Row style={{ marginBottom: 0 }}>
-                        <Input s={6} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Key" />
+                        <Input s={6} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Enter Key here." />
                     </Row>
                     <Row style={{ marginBottom: 0 }}>
                         <div > Data: </div>
@@ -262,23 +276,27 @@ class Write extends Component {
                         </div>
                     </Row >
                     <Row>
-                        <Input s={6} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Private Key" />
+                        <Input s={6} type="password" onChange={this.privateKeyDataHandler.bind(this)} name='privateKey' label="Enter Private Key here." />
                         <Label style={{ color: 'blue' }}>{this.state.EntryID}</Label>
                     </Row>
-                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
+                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Save Data</Button>
                 </form>
 
                 <Row>
                 </Row>
                 <form onSubmit={this.onUploadFile.bind(this)}>
+                <h4> Save encrypted file on the Blockchain </h4>
+
                     <input
                         type="file"
                         onChange={this.captureFile}
                     />
+                    <Input s={6} type="password" onChange={this.privateKeyFileHandler.bind(this)} name='privateKey' label="Enter Private Key here." />
+
                     <Button
                         bsStyle="primary"
                         type="submit">
-                        Upload file
+                        Upload File
                     </Button>
                     <Label style={{ color: 'blue' }}>Hash: {this.state.ipfsHash}</Label>
                 </form>

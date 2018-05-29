@@ -126,6 +126,7 @@ class Read extends Component {
         return (
             <div>
                 <form onSubmit={this.submit.bind(this)}>
+                    <h4> Read encrypted data from the Blockchain </h4>
                     <br />
                     <Row>
                         <div > Data: </div>
@@ -136,16 +137,18 @@ class Read extends Component {
                     <Row s={12}>
                         <div > Input: </div>
                         <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter Key here." />
-                        <Input s={6} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private key here." />
+                        <Input s={6} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here." />
                     </Row>
-                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Submit</Button>
+                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Read Data</Button>
                 </form>
 
                 <form onSubmit={this.downloadFile.bind(this)}>
+                    <h4> Download encrypted files from the Blockchain </h4>
                     <Row s={12}>
                         <Input s={6} type='text' name='FileHash' onChange={this.onHashCHange.bind(this)} label="Enter file hash here." />
+                        <Input s={6} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here." />
                     </Row>
-                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Download file</Button>
+                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Download File</Button>
                 </form>
 
             </div>

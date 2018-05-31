@@ -17,7 +17,7 @@ contract Storage is Repository, Ownable {
          else if (sha3(_fileHash) != sha3("")) {
             require(msg.value >= fileUploadCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
         }
-        data[_key] = Data(_value, _fileHash, msg.sender);
+        // data[_key] = Data(_value, _fileHash, msg.sender);
         owner.transfer(msg.value);
         emit DataAdded(_key, _value, _fileHash);
     }

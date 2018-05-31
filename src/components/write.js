@@ -16,7 +16,7 @@ const factor = 1000000000000000000;
 // const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
 
 // Current test contract
-const contractAddress = '0x878813faa45610e5bae87847712a07cd0d98f2ce'
+const contractAddress = '0xd65e45f8cd1ea771149c5fce10f551e4a5ef41cd'
 
 var storageContract
 var mAccounts
@@ -285,17 +285,6 @@ class Write extends Component {
                             onChange={this.captureFile}
                         />
                         <Input s={12} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
-                        <div>Transaction Speed:</div>
-                        <div >
-                            <Input s={12} type='select' value={this.state.gasCostState}  >
-                                <option value='Please select'>Please select</option>
-                                <option value='Fast'>Fast</option>
-                                <option value='Average'>Average</option>
-                            </Input>
-                            {/* <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor} ETH</Label> */}
-                            {/* <Label s={3} style={{ color: 'blue' }}> / {((gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor) * gasPriceInUSD} USD</Label> */}
-                        </div>
-                        <Label style={{ color: 'blue' }}>{this.state.EntryID}</Label>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Save Data</Button>
                     </Col>
                     <Col s={3}></Col>

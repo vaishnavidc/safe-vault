@@ -114,6 +114,7 @@ class Read extends Component {
     }
 
     downloadFile(event) {
+        console.log('in Download File')
         event.preventDefault();
         var link = document.createElement("a");
         link.download = fileHash;
@@ -126,28 +127,25 @@ class Read extends Component {
         return (
             <div>
                 <form onSubmit={this.submit.bind(this)}>
+                    <Row style={{ marginBottom: 0 }}>
+                    <Col s={4}></Col>
+                    <Col s={4}>
                     <div > Parameters: </div>
-                    <Row style={{ marginBottom: 0 }}>
-                        <Input s={6} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />
-                    </Row>
-                    <Row style={{ marginBottom: 0 }}>
-                        <Input s={6} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter Key here" />
-                    </Row>
-
-                    <Row style={{ marginBottom: 0 }}>
+                        <Input s={12} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />
+                        <Input s={12} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter Key here" />
                         <div > Data: </div>
-                    </Row>
                     <p>
                         {nl2br(this.state.value)}
                     </p>
-                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Read Data</Button>
+                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit'>Read Data</Button>
+                    <Button className="btn waves-effect waves-light">Dummy Button</Button>
+                    </Col>
+                    <Col s={4}></Col>
+                    </Row>
                 </form>
-
-                <Row style={{ marginBottom: 0 }}>
                     <form onSubmit={this.downloadFile.bind(this)}>
                         <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Download File</Button>
                     </form>
-                </Row>
             </div>
         )
     }

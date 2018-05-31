@@ -305,26 +305,19 @@ class Write extends Component {
                 <form onSubmit={this.submit.bind(this)}>
                     <br />
                     <Row style={{ marginBottom: 0 }}>
-                        <Input s={6} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Enter Key here" />
-                    </Row>
-                    <Row style={{ marginBottom: 0 }}>
+                    <Col s={3}></Col>
+                    <Col s={6}>
+                        <Input s={12} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Enter Key here" />
                         <div > Data: </div>
                         <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
-                    </Row>
-
-                    <Row>
                         <input
                             type="file"
                             onChange={this.captureFile}
                         />
-                    </Row>
-
-                    <Input s={6} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
-
-                    <Row style={{ marginBottom: 0 }}>
+                        <Input s={12} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
                         <div>Transaction Speed:</div>
                         <div >
-                            <Input s={3} type='select' value={this.state.gasCostState} onChange={this.gasCostHandler.bind(this)} >
+                            <Input s={12} type='select' value={this.state.gasCostState} onChange={this.gasCostHandler.bind(this)} >
                                 <option value='Please select'>Please select</option>
                                 <option value='Fast'>Fast</option>
                                 <option value='Average'>Average</option>
@@ -332,11 +325,11 @@ class Write extends Component {
                             {/* <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor} ETH</Label> */}
                             {/* <Label s={3} style={{ color: 'blue' }}> / {((gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor) * gasPriceInUSD} USD</Label> */}
                         </div>
-                    </Row >
-                    <Row>
                         <Label style={{ color: 'blue' }}>{this.state.EntryID}</Label>
-                    </Row>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Save Data</Button>
+                    </Col>
+                    <Col s={3}></Col>
+                    </Row>
                 </form>
             </div>
         )

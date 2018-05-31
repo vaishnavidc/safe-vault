@@ -4,7 +4,7 @@ import { Tab, Tabs, Input, Row, Button, Col } from 'react-materialize';
 class Company extends Component {
 
     componentWillMount(){
-        this.props.history.push('/write');
+        this.props.history.push('/read');
         document.title = "BlockSave"
     }
 
@@ -24,10 +24,14 @@ class Company extends Component {
 
     render() {
         return (
-            <div style = {{color: 'light-gray'}}>
-             <Button onClick = {this.readBtnHandler.bind(this)}>Read</Button>
-              <Button onClick = {this.writeBtnHandler.bind(this)}>Write</Button> 
-            </div>
+            <Row style = {{color: 'light-gray'}} s={12}>
+                <Col s={4}></Col>
+                <Col s={4}>                
+             <Button onClick = {this.readBtnHandler.bind(this)} style={{width : '49.1%'}}>Read</Button>
+              <Button onClick = {this.writeBtnHandler.bind(this)} style={{width : '49.1%'}}>Write</Button> 
+                </Col>
+                <Col s={4}></Col>
+            </Row>
         )
     }
 }

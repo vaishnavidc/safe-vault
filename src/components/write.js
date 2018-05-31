@@ -12,8 +12,11 @@ import read from './read';
 
 const factor = 1000000000000000000;
 
+// Previous working contract
 // const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
-const contractAddress = '0x37a9d7f4aa617f0074dc0a6d9b416126734b16e9'
+
+// Current test contract
+const contractAddress = '0x878813faa45610e5bae87847712a07cd0d98f2ce'
 
 var storageContract
 var mAccounts
@@ -23,7 +26,6 @@ var data = {
     ipfsHash: '',
     address: ''
 }
-var currentState = 'Please select'
 
 var web3 = null
 
@@ -116,60 +118,40 @@ class Write extends Component {
     // }
 
     estimateGas() {
-        if (currentState == 'Average' || currentState == 'Fast') {
-            
-            if (data.value != '' && data.ipfsHash != '') {
-                var encryptedValue = this.encrypt(data.value, "pass")
-                var encryptedFileHash = this.encrypt(data.ipfsHash, "pass")
-
-                feeToCharge = (fileUploadCharge / ETHToUSDExchangeRate + dataWriteCharge / ETHToUSDExchangeRate)
-
-                return storageContract.addData.estimateGas(data.key, encryptedValue, encryptedFileHash, data.address, {
-                    from: mAccounts[0],
-                    value: feeToCharge * factor,
-                    gasPrice: gasPrice
-                }, ((error, result) => {
-                    console.log("Estimated startGas: " + result)
-                    console.log(error)
-                    this.setState({ gasLimit: result })
-    
-                    this.openConfirmationDialog()
-                }))
-            } else if (data.value != '' && data.ipfsHash == '') {
-                console.log("here")
-                var encryptedValue = this.encrypt(data.value, "pass")
-
-                feeToCharge = dataWriteCharge / ETHToUSDExchangeRate 
-
-                return storageContract.addData.estimateGas(data.key, encryptedValue, '', data.address, {
-                    from: mAccounts[0],
-                    value: feeToCharge * factor,
-                    gasPrice: gasPrice
-                }, ((error, result) => {
-                    console.log("Estimated startGas: " + result)
-                    console.log(error)
-                    this.setState({ gasLimit: result })
-    
-                    this.openConfirmationDialog()
-                }))
-            } else if (data.value == '' && data.ipfsHash != '') {
-                var encryptedFileHash = this.encrypt(data.ipfsHash, "pass")
-
-                feeToCharge = fileUploadCharge / ETHToUSDExchangeRate
-
-                return storageContract.addData.estimateGas(data.key, '', encryptedFileHash, data.address, {
-                    from: mAccounts[0],
-                    value: feeToCharge * factor,
-                    gasPrice: gasPrice
-                }, ((error, result) => {
-                    console.log("Estimated startGas: " + result)
-                    console.log(error)
-                    this.setState({ gasLimit: result })
-    
-                    this.openConfirmationDialog()
-                }))
-            }
+        var encryptedValue = ''
+        var encryptedFileHash = ''
+        if (data.value != '' && data.ipfsHash != '') {
+            feeToCharge = (fileUploadCharge / ETHToUSDExchangeRate + dataWriteCharge / ETHToUSDExchangeRate)
+            encryptedValue = this.encrypt(data.value, privateKey)
+            encryptedFileHash = this.encrypt(data.ipfsHash, privateKey)
+        } else if (data.value != '' && data.ipfsHash == '') {
+            feeToCharge = dataWriteCharge / ETHToUSDExchangeRate
+            encryptedValue = this.encrypt(data.value, privateKey)
+        } else if (data.value == '' && data.ipfsHash != '') {
+            feeToCharge = fileUploadCharge / ETHToUSDExchangeRate
+            encryptedFileHash = this.encrypt(data.ipfsHash, privateKey)
         }
+
+        console.log(data.key)
+        console.log(encryptedValue)
+        console.log(encryptedFileHash)
+        console.log(data.address)
+        console.log(web3.toWei(feeToCharge, 'ether'))
+        console.log(gasPrice)
+
+        return storageContract.addData.estimateGas(data.key, encryptedValue, encryptedFileHash, {
+            from: data.address,
+            value: web3.toWei(1, 'ether'),
+            gasPrice: gasPrice
+        }, ((error, result) => {
+            if (error != null) {
+                console.log(error)
+            } else {
+                console.log("Estimated startGas: " + result)
+                this.setState({ gasLimit: result })
+                this.openConfirmationDialog()
+            }
+        }))
     }
 
     getGasPrice() {
@@ -216,7 +198,6 @@ class Write extends Component {
         if (data.key === ''
             || data.address === ''
             || privateKey === ''
-            || currentState === 'Please select'
         ) {
             alert("All the fields are required");
             return
@@ -230,7 +211,7 @@ class Write extends Component {
     }
 
     openConfirmationDialog() {
-        var retVal = confirm("Transaction cost is " + ((gasPrice * this.state.gasLimit + feeToCharge) / factor) * ETHToUSDExchangeRate + " USD " + "Do you want to continue ?");
+        var retVal = confirm("Transaction cost will be " + ((gasPrice * this.state.gasLimit + feeToCharge) / factor) * ETHToUSDExchangeRate + " USD " + "Do you want to continue ?");
         if (retVal == true) {
             this.onUploadFile()
             this.addData()
@@ -254,17 +235,6 @@ class Write extends Component {
     addressHandler(event) {
         data.address = event.target.value
         // this.estimateGas()
-    }
-
-    gasCostHandler(event) {
-        currentState = event.target.value
-        if (currentState === 'Fast') {
-            gasPrice = gasPrice * 2
-            // this.estimateGas()
-        } else if (currentState == 'Average') {
-            this.getGasPrice()
-            // this.estimateGas()
-        }
     }
 
     privateKeyHandler(event) {

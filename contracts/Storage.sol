@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.23;
 
 import "./Repository.sol";
 import "./Ownable.sol";
@@ -7,18 +7,17 @@ contract Storage is Repository, Ownable {
 
     event DataAdded(string key, string value, string fileHash);
     
-    function addData(string _key, string _value, string _fileHash, address _addressToCharge) public payable {
-        if (keccak256(_fileHash) == keccak256("") && keccak256(_value) == keccak256("")) {
-            revert();
-        } else if (keccak256(_fileHash) == keccak256("") && keccak256(_value) != keccak256("")) {
-            require(msg.value >= dataWriteCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
-        }
-         else if (keccak256(_value) == keccak256("") && keccak256(_fileHash) != keccak256("")) {
-            require(msg.value >= fileUploadCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
-        } else {
+    function addData(string _key, string _value, string _fileHash) public payable {
+        if (sha3(_fileHash) != sha3("") && sha3(_value) != sha3("")) {
             require(msg.value >= fileUploadCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE + dataWriteCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
         }
-        data[_key] = Data(_value, _addressToCharge, _fileHash);
+        if (sha3(_value) != sha3("")) {
+            require(msg.value >= dataWriteCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
+        }
+         else if (sha3(_fileHash) != sha3("")) {
+            require(msg.value >= fileUploadCharge / ETHToUSDExchangeRate * WEI_T0_ETH_RATE);
+        }
+        data[_key] = Data(_value, _fileHash, msg.sender);
         owner.transfer(msg.value);
         emit DataAdded(_key, _value, _fileHash);
     }

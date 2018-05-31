@@ -1,11 +1,11 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.23;
 
 contract Repository {
 
     struct Data {
         string value;
-        address toCharge;
         string fileHash;
+        address toCharge;
     }
 
     uint constant public WEI_T0_ETH_RATE = 1 ether;

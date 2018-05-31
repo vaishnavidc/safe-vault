@@ -1,4 +1,4 @@
-pragma solidity ^0.4.2;
+pragma solidity ^0.4.24;
 
 import "./Repository.sol";
 import "./Ownable.sol";
@@ -39,8 +39,7 @@ contract Storage is Repository, Ownable {
         return (data[_key].value, data[_key].fileHash);
     }
 
-    constructor(/*uint _exchangeRate*/) public {
+    constructor() public {
         owner = msg.sender;
-        // ETHToUSDExchangeRate = _exchangeRate;
     }
 }

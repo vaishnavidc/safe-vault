@@ -8,8 +8,8 @@ import getWeb3 from '../utils/getWeb3'
 
 const factor = 1000000000000000000;
 
-// const contractAddress = '0xee0d8ac2a97fbe516b1c2e83ea689762f6f21112'
-const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
+// const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
+const contractAddress = '0x37a9d7f4aa617f0074dc0a6d9b416126734b16e9'
 
 var storageContract
 var deployedInstance

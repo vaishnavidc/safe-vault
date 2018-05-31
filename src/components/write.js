@@ -12,30 +12,33 @@ import read from './read';
 
 const factor = 1000000000000000000;
 
-// const contractAddress = '0xee0d8ac2a97fbe516b1c2e83ea689762f6f21112'
-const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
+// const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
+const contractAddress = '0x37a9d7f4aa617f0074dc0a6d9b416126734b16e9'
 
 var storageContract
 var mAccounts
 var data = {
     key: '',
     value: '',
+    ipfsHash: '',
     address: ''
 }
 var currentState = 'Please select'
 
 var web3 = null
 
-var gasPriceInUSD = 0
-var fractionToCharge = 1000
 var gasPrice = 0
+var feeToCharge = 0
 
-var privateKeyData = ''
-var privateKeyFile = ''
+var privateKey = ''
 
 var keySize = 256;
 var ivSize = 128;
 var iterations = 100;
+
+var ETHToUSDExchangeRate = 500;
+var dataWriteCharge = 1;
+var fileUploadCharge = 5;
 
 class Write extends Component {
     constructor(props) {
@@ -43,7 +46,6 @@ class Write extends Component {
         this.state = {
             gasLimit: 0,
             transactionStateMessage: '',
-            ipfsHash: null,
             buffer: ''
         }
     }
@@ -54,7 +56,7 @@ class Write extends Component {
                 web3 = results.web3
                 this.instantiateContract()
                 this.getGasPrice()
-                this.getEthToUSD()
+                // this.getEthToUSD()
             })
             .catch(() => {
                 console.log('Error finding web3.')
@@ -101,30 +103,72 @@ class Write extends Component {
         return transitmessage;
     }
 
-    getEthToUSD() {
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                var jObj = JSON.parse(this.responseText);
-                gasPriceInUSD = parseInt(jObj.data.quotes.USD.price)
-            }
-        };
-        xmlhttp.open("GET", "https://api.coinmarketcap.com/v2/ticker/1027/", true);
-        xmlhttp.send();
-    }
+    // getEthToUSD() {
+    //     var xmlhttp = new XMLHttpRequest();
+    //     xmlhttp.onreadystatechange = function () {
+    //         if (this.readyState == 4 && this.status == 200) {
+    //             var jObj = JSON.parse(this.responseText);
+    //             gasPriceInUSD = parseInt(jObj.data.quotes.USD.price)
+    //         }
+    //     };
+    //     xmlhttp.open("GET", "https://api.coinmarketcap.com/v2/ticker/1027/", true);
+    //     xmlhttp.send();
+    // }
 
     estimateGas() {
         if (currentState == 'Average' || currentState == 'Fast') {
-            var encrypted = this.encrypt(data.value, "pass")
-            return storageContract.addData.estimateGas(data.key, encrypted, data.address, {
-                from: mAccounts[0],
-                value: gasPrice * fractionToCharge,
-                gasPrice: gasPrice
-            }, ((error, result) => {
-                console.log("Estimated startGas: " + result)
-                console.log(error)
-                this.setState({ gasLimit: result })
-            }))
+            
+            if (data.value != '' && data.ipfsHash != '') {
+                var encryptedValue = this.encrypt(data.value, "pass")
+                var encryptedFileHash = this.encrypt(data.ipfsHash, "pass")
+
+                feeToCharge = (fileUploadCharge / ETHToUSDExchangeRate + dataWriteCharge / ETHToUSDExchangeRate)
+
+                return storageContract.addData.estimateGas(data.key, encryptedValue, encryptedFileHash, data.address, {
+                    from: mAccounts[0],
+                    value: feeToCharge * factor,
+                    gasPrice: gasPrice
+                }, ((error, result) => {
+                    console.log("Estimated startGas: " + result)
+                    console.log(error)
+                    this.setState({ gasLimit: result })
+    
+                    this.openConfirmationDialog()
+                }))
+            } else if (data.value != '' && data.ipfsHash == '') {
+                console.log("here")
+                var encryptedValue = this.encrypt(data.value, "pass")
+
+                feeToCharge = dataWriteCharge / ETHToUSDExchangeRate 
+
+                return storageContract.addData.estimateGas(data.key, encryptedValue, '', data.address, {
+                    from: mAccounts[0],
+                    value: feeToCharge * factor,
+                    gasPrice: gasPrice
+                }, ((error, result) => {
+                    console.log("Estimated startGas: " + result)
+                    console.log(error)
+                    this.setState({ gasLimit: result })
+    
+                    this.openConfirmationDialog()
+                }))
+            } else if (data.value == '' && data.ipfsHash != '') {
+                var encryptedFileHash = this.encrypt(data.ipfsHash, "pass")
+
+                feeToCharge = fileUploadCharge / ETHToUSDExchangeRate
+
+                return storageContract.addData.estimateGas(data.key, '', encryptedFileHash, data.address, {
+                    from: mAccounts[0],
+                    value: feeToCharge * factor,
+                    gasPrice: gasPrice
+                }, ((error, result) => {
+                    console.log("Estimated startGas: " + result)
+                    console.log(error)
+                    this.setState({ gasLimit: result })
+    
+                    this.openConfirmationDialog()
+                }))
+            }
         }
     }
 
@@ -136,39 +180,42 @@ class Write extends Component {
     }
 
     addData() {
-        var encrypted = this.encrypt(data.value, privateKeyData)
-        return storageContract.addData.estimateGas(data.key, encrypted, data.address, {
-            from: mAccounts[0],
-            value: gasPrice * fractionToCharge
-        }, ((error, result) => {
-            return storageContract.addData(data.key, encrypted, data.address, {
-                from: data.address,
-                gas: this.state.gasLimit,
-                gasPrice: gasPrice,
-                value: gasPrice * fractionToCharge
-            }, ((error, result) => {
-                if (error === null) {
-                    alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
-                    var event = storageContract.DataAdded()
-                    event.watch((err, res) => {
-                        if (err === null) {
-                            this.setState({ transactionStateMessage: "Data has been saved in the blockchain. You can query data from the blockchain with this key." })
-                            alert("Transaction has been mined.")
-                        } else {
-                            this.setState({ transactionStateMessage: "Please choose a unique key. This key already exists." })
-                        }
-                    })
-                }
-            }))
-        }))
+        // var encrypted = this.encrypt(data.value, privateKey)
+        // return storageContract.addData.estimateGas(data.key, encrypted, data.address, {
+        //     from: mAccounts[0],
+        //     value: gasPrice * fractionToCharge
+        // }, ((error, result) => {
+        //     return storageContract.addData(data.key, encrypted, data.address, {
+        //         from: data.address,
+        //         gas: this.state.gasLimit,
+        //         gasPrice: gasPrice,
+        //         value: gasPrice * fractionToCharge
+        //     }, ((error, result) => {
+        //         if (error === null) {
+        //             alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
+        //             var event = storageContract.DataAdded()
+        //             event.watch((err, res) => {
+        //                 if (err === null) {
+        //                     this.setState({ transactionStateMessage: "Data has been saved in the blockchain. You can query data from the blockchain with this key." })
+        //                     alert("Transaction has been mined.")
+        //                 } else {
+        //                     this.setState({ transactionStateMessage: "Please choose a unique key. This key already exists." })
+        //                 }
+        //             })
+        //         }
+        //     }))
+        // }))
     }
 
     submit(event) {
         event.preventDefault();
+        if (data.value === '' && this.state.buffer == '') {
+            alert("Please enter data or select file to upload")
+            return
+        }
         if (data.key === ''
-            || data.value === ''
             || data.address === ''
-            || privateKeyData === ''
+            || privateKey === ''
             || currentState === 'Please select'
         ) {
             alert("All the fields are required");
@@ -178,57 +225,60 @@ class Write extends Component {
             alert("Metamask not set up")
             return
         }
-        else {
+
+        this.estimateGas()
+    }
+
+    openConfirmationDialog() {
+        var retVal = confirm("Transaction cost is " + ((gasPrice * this.state.gasLimit + feeToCharge) / factor) * ETHToUSDExchangeRate + " USD " + "Do you want to continue ?");
+        if (retVal == true) {
+            this.onUploadFile()
             this.addData()
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
     id1Handler(event) {
         data.key = event.target.value
-        this.estimateGas()
+        // this.estimateGas()
     }
 
     id2Handler(event) {
         data.value = event.target.value
-        this.estimateGas()
+        // this.estimateGas()
     }
 
     addressHandler(event) {
         data.address = event.target.value
-        this.estimateGas()
+        // this.estimateGas()
     }
 
     gasCostHandler(event) {
         currentState = event.target.value
         if (currentState === 'Fast') {
             gasPrice = gasPrice * 2
-            this.estimateGas()
+            // this.estimateGas()
         } else if (currentState == 'Average') {
             this.getGasPrice()
-            this.estimateGas()
+            // this.estimateGas()
         }
     }
 
-    privateKeyDataHandler(event) {
-        privateKeyData = event.target.value
-    }
-
-    privateKeyFileHandler(event) {
-        privateKeyFile = event.target.value
+    privateKeyHandler(event) {
+        privateKey = event.target.value
     }
 
     onUploadFile = async (event) => {
-        if (privateKeyFile === '') {
-            alert("Please enter private key first")
-            return
-        }
         event.preventDefault();
 
         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
             console.log(err, ipfsHash);
             if (err == null) {
-                this.setState({ ipfsHash: ipfsHash[0].hash });
-                console.log(this.state.ipfsHash)
+                data.ipfsHash = ipfsHash[0].hash
+                console.log(data.ipfsHash)
                 alert("File uploaded")
             }
         })
@@ -269,7 +319,7 @@ class Write extends Component {
                         />
                     </Row>
 
-                    <Input s={6} type="password" onChange={this.privateKeyFileHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
+                    <Input s={6} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
 
                     <Row style={{ marginBottom: 0 }}>
                         <div>Transaction Speed:</div>
@@ -279,8 +329,8 @@ class Write extends Component {
                                 <option value='Fast'>Fast</option>
                                 <option value='Average'>Average</option>
                             </Input>
-                            <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor} ETH</Label>
-                            <Label s={3} style={{ color: 'blue' }}> / {((gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor) * gasPriceInUSD} USD</Label>
+                            {/* <Label s={3} style={{ color: 'blue' }}>Transaction Cost: {(gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor} ETH</Label> */}
+                            {/* <Label s={3} style={{ color: 'blue' }}> / {((gasPrice * this.state.gasLimit + gasPrice * fractionToCharge) / factor) * gasPriceInUSD} USD</Label> */}
                         </div>
                     </Row >
                     <Row>

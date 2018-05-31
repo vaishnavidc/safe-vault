@@ -62,7 +62,7 @@ contract('Storage', function (accounts) {
         var instance;
         return storage.deployed().then(function (i) {
             instance = i;
-            return instance.getData(key, { from: accounts[0] });
+            return instance.getData.call(key, { from: accounts[0] });
         }).then(function (result) {
             assert.equal(result[0], "value", "Value not added");
             assert.equal(result[1], "QmVunwR4mvC4F5eTYWCGU3Baq9kmaTyRPot6nRGp24D4aJ", "File hash not added");

@@ -287,7 +287,7 @@ class Write extends Component {
                         <Input s={12} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
                         <div>Transaction Speed:</div>
                         <div >
-                            <Input s={12} type='select' value={this.state.gasCostState}  >
+                            <Input s={12} type='select' value={this.state.gasCostState} >
                                 <option value='Please select'>Please select</option>
                                 <option value='Fast'>Fast</option>
                                 <option value='Average'>Average</option>

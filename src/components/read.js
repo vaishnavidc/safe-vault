@@ -138,14 +138,11 @@ class Read extends Component {
                         {nl2br(this.state.value)}
                     </p>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit'>Read Data</Button>
-                    <Button className="btn waves-effect waves-light">Dummy Button</Button>
+                    <Button className="btn waves-effect waves-light">Download File</Button>
                     </Col>
                     <Col s={4}></Col>
                     </Row>
                 </form>
-                    <form onSubmit={this.downloadFile.bind(this)}>
-                        <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0 }}>Download File</Button>
-                    </form>
             </div>
         )
     }

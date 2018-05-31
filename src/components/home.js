@@ -27,8 +27,8 @@ class Company extends Component {
             <Row style = {{color: 'light-gray'}} s={12}>
                 <Col s={4}></Col>
                 <Col s={4}>                
-             <Button onClick = {this.readBtnHandler.bind(this)} style={{width : '49.1%'}}>Read</Button>
-              <Button onClick = {this.writeBtnHandler.bind(this)} style={{width : '49.1%'}}>Write</Button> 
+             <Button onClick = {this.readBtnHandler.bind(this)} style={{width : '200px'}}>Read</Button>
+              <Button onClick = {this.writeBtnHandler.bind(this)} style={{width : '200px'}} >Write</Button> 
                 </Col>
                 <Col s={4}></Col>
             </Row>

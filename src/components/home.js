@@ -24,11 +24,17 @@ class Company extends Component {
 
     render() {
         return (
-            <Row style = {{color: 'light-gray'}} s={12}>
+            <Row s={12}>
                 <Col s={4}></Col>
-                <Col s={4}>                
-             <Button onClick = {this.readBtnHandler.bind(this)} style={{width : '200px'}}>Read</Button>
-              <Button onClick = {this.writeBtnHandler.bind(this)} style={{width : '200px'}} >Write</Button> 
+                <Col s={4}>
+                <Row>
+                    <Col s={6}>
+             <Button onClick={this.readBtnHandler.bind(this)} style={{width : '200px', backgroundColor : '#89129E'}}>Read</Button>
+                    </Col>
+                    <Col s={6}>
+              <Button onClick={this.writeBtnHandler.bind(this)} style={{width : '200px', backgroundColor : '#89129E'}} >Write</Button> 
+                    </Col>
+              </Row>
                 </Col>
                 <Col s={4}></Col>
             </Row>

@@ -23,8 +23,12 @@ var mAccounts
 var data = {
     key: '',
     value: '',
-    ipfsHash: '',
-    address: ''
+    ipfsHash: ''
+}
+
+var encryptedData = {
+    value: '',
+    ipfsHash: ''
 }
 
 var web3 = null
@@ -58,7 +62,6 @@ class Write extends Component {
                 web3 = results.web3
                 this.instantiateContract()
                 this.getGasPrice()
-                // this.getEthToUSD()
             })
             .catch(() => {
                 console.log('Error finding web3.')
@@ -66,7 +69,7 @@ class Write extends Component {
     }
 
     instantiateContract() {
-        var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_addressToCharge", "type": "address" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }])
+        var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_fileHash", "type": "string" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [], "name": "WEI_T0_ETH_RATE", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "ETHToUSDExchangeRate", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "dataWriteCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setDataWriteCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }, { "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setFileUploadCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_exchangeRate", "type": "uint256" }], "name": "setExchangeRate", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "fileUploadCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }, { "indexed": false, "name": "fileHash", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }])
         storageContract = contract.at(contractAddress);
 
         web3.eth.getAccounts((error, accounts) => {
@@ -74,7 +77,6 @@ class Write extends Component {
                 alert("Metamask not set up.")
             }
             mAccounts = accounts
-            data.address = mAccounts[0]
             var accountInterval = setInterval(function () {
                 if (web3.eth.accounts[0] !== mAccounts[0]) {
                     mAccounts = web3.eth.accounts;
@@ -105,43 +107,22 @@ class Write extends Component {
         return transitmessage;
     }
 
-    // getEthToUSD() {
-    //     var xmlhttp = new XMLHttpRequest();
-    //     xmlhttp.onreadystatechange = function () {
-    //         if (this.readyState == 4 && this.status == 200) {
-    //             var jObj = JSON.parse(this.responseText);
-    //             gasPriceInUSD = parseInt(jObj.data.quotes.USD.price)
-    //         }
-    //     };
-    //     xmlhttp.open("GET", "https://api.coinmarketcap.com/v2/ticker/1027/", true);
-    //     xmlhttp.send();
-    // }
-
     estimateGas() {
-        var encryptedValue = ''
-        var encryptedFileHash = ''
         if (data.value != '' && data.ipfsHash != '') {
             feeToCharge = (fileUploadCharge / ETHToUSDExchangeRate + dataWriteCharge / ETHToUSDExchangeRate)
-            encryptedValue = this.encrypt(data.value, privateKey)
-            encryptedFileHash = this.encrypt(data.ipfsHash, privateKey)
+            encryptedData.value = this.encrypt(data.value, privateKey)
+            encryptedData.ipfsHash = this.encrypt(data.ipfsHash, privateKey)
         } else if (data.value != '' && data.ipfsHash == '') {
             feeToCharge = dataWriteCharge / ETHToUSDExchangeRate
-            encryptedValue = this.encrypt(data.value, privateKey)
+            encryptedData.value = this.encrypt(data.value, privateKey)
         } else if (data.value == '' && data.ipfsHash != '') {
             feeToCharge = fileUploadCharge / ETHToUSDExchangeRate
-            encryptedFileHash = this.encrypt(data.ipfsHash, privateKey)
+            encryptedData.ipfsHash = this.encrypt(data.ipfsHash, privateKey)
         }
 
-        console.log(data.key)
-        console.log(encryptedValue)
-        console.log(encryptedFileHash)
-        console.log(data.address)
-        console.log(web3.toWei(feeToCharge, 'ether'))
-        console.log(gasPrice)
-
-        return storageContract.addData.estimateGas(data.key, encryptedValue, encryptedFileHash, {
-            from: data.address,
-            value: web3.toWei(1, 'ether'),
+        return storageContract.addData.estimateGas(data.key, encryptedData.value, encryptedData.ipfsHash, {
+            from: mAccounts[0],
+            value: web3.toWei(feeToCharge, 'ether'),
             gasPrice: gasPrice
         }, ((error, result) => {
             if (error != null) {
@@ -162,31 +143,29 @@ class Write extends Component {
     }
 
     addData() {
-        // var encrypted = this.encrypt(data.value, privateKey)
-        // return storageContract.addData.estimateGas(data.key, encrypted, data.address, {
-        //     from: mAccounts[0],
-        //     value: gasPrice * fractionToCharge
-        // }, ((error, result) => {
-        //     return storageContract.addData(data.key, encrypted, data.address, {
-        //         from: data.address,
-        //         gas: this.state.gasLimit,
-        //         gasPrice: gasPrice,
-        //         value: gasPrice * fractionToCharge
-        //     }, ((error, result) => {
-        //         if (error === null) {
-        //             alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
-        //             var event = storageContract.DataAdded()
-        //             event.watch((err, res) => {
-        //                 if (err === null) {
-        //                     this.setState({ transactionStateMessage: "Data has been saved in the blockchain. You can query data from the blockchain with this key." })
-        //                     alert("Transaction has been mined.")
-        //                 } else {
-        //                     this.setState({ transactionStateMessage: "Please choose a unique key. This key already exists." })
-        //                 }
-        //             })
-        //         }
-        //     }))
-        // }))
+        if (data.ipfsHash != '') {
+            encryptedData.ipfsHash = this.encrypt(data.ipfsHash, privateKey)
+        }
+        return storageContract.addData(data.key, encryptedData.value, encryptedData.ipfsHash, {
+            from: mAccounts[0],
+            gas: this.state.gasLimit,
+            gasPrice: gasPrice,
+            value: web3.toWei(feeToCharge, 'ether')
+        }, ((error, result) => {
+            if (error === null) {
+                alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
+                var event = storageContract.DataAdded()
+                event.watch((err, res) => {
+                    if (err === null) {
+                        this.setState({ transactionStateMessage: "Data has been saved in the blockchain. You can query data from the blockchain with this key." })
+                        alert("Transaction has been mined.")
+                    } else {
+                        this.setState({ transactionStateMessage: "Please choose a unique key. This key already exists." })
+                    }
+                })
+            }
+        }))
+
     }
 
     submit(event) {
@@ -196,7 +175,7 @@ class Write extends Component {
             return
         }
         if (data.key === ''
-            || data.address === ''
+            || mAccounts[0] === ''
             || privateKey === ''
         ) {
             alert("All the fields are required");
@@ -211,10 +190,10 @@ class Write extends Component {
     }
 
     openConfirmationDialog() {
-        var retVal = confirm("Transaction cost will be " + ((gasPrice * this.state.gasLimit + feeToCharge) / factor) * ETHToUSDExchangeRate + " USD " + "Do you want to continue ?");
+        var retVal = confirm("Transaction cost will be " + (((gasPrice * this.state.gasLimit) / factor + feeToCharge) * ETHToUSDExchangeRate).toString() + " USD " + "Do you want to continue ?");
         if (retVal == true) {
-            this.onUploadFile()
-            this.addData()
+            if (data.ipfsHash != 0) this.uploadFile()
+            else this.addData()
             return true;
         }
         else {
@@ -224,32 +203,23 @@ class Write extends Component {
 
     id1Handler(event) {
         data.key = event.target.value
-        // this.estimateGas()
     }
 
     id2Handler(event) {
         data.value = event.target.value
-        // this.estimateGas()
-    }
-
-    addressHandler(event) {
-        data.address = event.target.value
-        // this.estimateGas()
     }
 
     privateKeyHandler(event) {
         privateKey = event.target.value
     }
 
-    onUploadFile = async (event) => {
-        event.preventDefault();
-
+    uploadFile = async () => {
         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
             console.log(err, ipfsHash);
             if (err == null) {
                 data.ipfsHash = ipfsHash[0].hash
                 console.log(data.ipfsHash)
-                alert("File uploaded")
+                this.addData()
             }
         })
     };
@@ -267,6 +237,7 @@ class Write extends Component {
         console.log(reader)
         const buffer = await Buffer.from(reader.result);
         this.setState({ buffer: buffer });
+        data.ipfsHash = 'QmVunwR4mvC4F5eTYWCGU3Baq9kmaTyRPot6nRGp24D4aJ'
     };
 
     render() {
@@ -275,19 +246,19 @@ class Write extends Component {
                 <form onSubmit={this.submit.bind(this)}>
                     <br />
                     <Row style={{ marginBottom: 0 }}>
-                    <Col s={3}></Col>
-                    <Col s={6}>
-                        <Input s={12} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Enter Key here" />
-                        <div > Data: </div>
-                        <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
-                        <input
-                            type="file"
-                            onChange={this.captureFile}
-                        />
-                        <Input s={12} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
-                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor : '#004EFF' }}>Save Data</Button>
-                    </Col>
-                    <Col s={3}></Col>
+                        <Col s={3}></Col>
+                        <Col s={6}>
+                            <Input s={12} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Enter Key here" />
+                            <div > Data: </div>
+                            <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
+                            <input
+                                type="file"
+                                onChange={this.captureFile}
+                            />
+                            <Input s={12} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
+                            <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor: '#004EFF' }}>Save Data</Button>
+                        </Col>
+                        <Col s={3}></Col>
                     </Row>
                 </form>
             </div>

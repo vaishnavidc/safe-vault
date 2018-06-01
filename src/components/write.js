@@ -10,6 +10,7 @@ import getWeb3 from '../utils/getWeb3'
 import Config from '../config/config'
 
 import ipfs from '../ipfs';
+import { read } from 'fs';
 
 const factor = 1000000000000000000;
 
@@ -50,6 +51,8 @@ var privateKey = ''
 var keySize = 256;
 var ivSize = 128;
 var iterations = 100;
+
+var fileContent = ''
 
 class Write extends Component {
     constructor(props) {
@@ -242,12 +245,47 @@ class Write extends Component {
         event.preventDefault()
         const file = event.target.files[0]
         let reader = new window.FileReader()
-        reader.readAsArrayBuffer(file)
-        reader.onloadend = () => this.convertToBuffer(reader)
+        // reader.readAsArrayBuffer(file)
+        reader.readAsDataURL(file)
+
+        reader.onloadend = (e) => {
+            fileContent = e.target.result;
+            var encrypted = CryptoJS.AES.encrypt(fileContent, "password")
+
+            // var a = document.createElement("a");
+            // a.href = 'data:application/octet-stream,' + encrypted;
+            // a.download = file.name + '.encrypted'
+            // document.body.appendChild(a);
+            // a.click();
+
+            console.log(encrypted.toString())
+
+            var eFile = new File([encrypted.toString()], "file.encrypted", {type: "text/plain"})
+            let eReader = new FileReader()
+            eReader.readAsArrayBuffer(eFile)
+            eReader.onloadend = (e) => {
+                this.convertToBuffer(eReader)
+            }
+
+            // var request = new XMLHttpRequest();
+            // request.open('GET', a.href, true);
+            // request.responseType = 'blob';
+            // request.onload = () => {
+            //     var eReader = new FileReader();
+            //     eReader.readAsArrayBuffer(request.response);
+            //     eReader.onload = (e) => {
+            //         this.convertToBuffer(eReader)
+            //     };
+            // };
+            // request.send();
+
+            // this.convertToBuffer(reader)
+        }
     };
 
     convertToBuffer = async (reader) => {
         const buffer = await Buffer.from(reader.result);
+        // console.log(buffer)
         this.setState({ buffer: buffer });
         data.ipfsHash = 'QmVunwR4mvC4F5eTYWCGU3Baq9kmaTyRPot6nRGp24D4aJ'
     };
@@ -262,6 +300,7 @@ class Write extends Component {
                         <Col s={3}></Col>
                         <Col s={6}>
                             <Label style={{ color: 'blue' }}>{this.state.currentStatus}</Label>
+                            <br />
                             <Label style={{ color: 'blue' }}>Please enter a key that you can use later to read back your information, this is like an index key</Label>
                             <br />
                             <Input s={12} type='text' onChange={this.onKeyChange.bind(this)} name='ID1' label="Enter Key here" />
@@ -277,7 +316,7 @@ class Write extends Component {
                             <br />
                             <br />
                             <Label style={{ color: 'blue' }}>Please enter a password here that will be ued to encrypt your data and file. Do not forget this password as you will need it to read your data or file later</Label>
-        
+
                             <Input s={12} type="password" onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
                             <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor: '#004EFF' }}>Save Data</Button>
                         </Col>

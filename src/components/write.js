@@ -285,7 +285,13 @@ class Write extends Component {
                             onChange={this.captureFile}
                         />
                         <Input s={12} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
+                    <Row>
+                    <Col s={4}></Col>
+                    <Col s={4}>
                     <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor : '#004EFF' }}>Save Data</Button>
+                    </Col>
+                    <Col s={4}></Col>
+                    </Row>
                     </Col>
                     <Col s={3}></Col>
                     </Row>

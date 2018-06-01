@@ -6,25 +6,29 @@ import CryptoJS from 'crypto-js';
 
 import getWeb3 from '../utils/getWeb3'
 
-const factor = 1000000000000000000;
+// Current test contract
+const contractAddress = '0xd65e45f8cd1ea771149c5fce10f551e4a5ef41cd'
 
-// const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
-const contractAddress = '0x37a9d7f4aa617f0074dc0a6d9b416126734b16e9'
-
+// Contract instance
 var storageContract
-var deployedInstance
+
+// Accounts
 var mAccounts
 
-var fileHash = ''
-
+// Web3 instance
 var web3 = null
 
+// Key and Private key of user
 var key = ''
 var privateKey = ''
 
+// Decryption parameters
 var keySize = 256;
 var ivSize = 128;
 var iterations = 100;
+
+// Hash of the file
+var fileHash = ''
 
 class Read extends Component {
     constructor(props) {
@@ -46,7 +50,7 @@ class Read extends Component {
     }
 
     instantiateContract() {
-        var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_addressToCharge", "type": "address" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }])
+        var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_fileHash", "type": "string" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [], "name": "WEI_T0_ETH_RATE", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "ETHToUSDExchangeRate", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "dataWriteCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setDataWriteCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }, { "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setFileUploadCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_exchangeRate", "type": "uint256" }], "name": "setExchangeRate", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "fileUploadCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }, { "indexed": false, "name": "fileHash", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }])
         storageContract = contract.at(contractAddress);
 
         web3.eth.getAccounts((error, accounts) => {
@@ -84,14 +88,15 @@ class Read extends Component {
 
     getData() {
         return storageContract.getData.call(key, { from: mAccounts[0] }, ((error, result) => {
-            console.log(result)
-            var decrypted = this.decrypt(result, privateKey).toString(CryptoJS.enc.Utf8)
-            console.log(decrypted)
-            this.setState({ value: decrypted })
+            var decryptedData = this.decrypt(result[0], privateKey).toString(CryptoJS.enc.Utf8)
+            fileHash = this.decrypt(result[1], privateKey).toString(CryptoJS.enc.Utf8)
+            this.setState({ 
+                value: decryptedData
+            })
         }))
     }
 
-    submit(event) {
+    onReadData(event) {
         event.preventDefault();
         if (key == '' || privateKey == '') {
             alert("All fields are required");
@@ -101,20 +106,15 @@ class Read extends Component {
         }
     }
 
-    EntryID(event) {
+    onKeyChange(event) {
         key = event.target.value
     }
 
-    onHashCHange(event) {
-        fileHash = event.target.value
-    }
-
-    privateKeyHandler(event) {
+    onPrivateKeyChange(event) {
         privateKey = event.target.value
     }
 
-    downloadFile(event) {
-        console.log('in Download File')
+    onDownloadFile(event) {
         event.preventDefault();
         var link = document.createElement("a");
         link.download = fileHash;
@@ -126,31 +126,31 @@ class Read extends Component {
     render() {
         return (
             <div>
-                <form onSubmit={this.submit.bind(this)}>
+                <form onSubmit={this.onReadData.bind(this)}>
                     <Row style={{ marginBottom: 0 }}>
-                    <Col s={4}></Col>
-                    <Col s={4}>
-                    <div > Parameters: </div>
-                        <Input s={12} type='password' onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />
-                        <Input s={12} type='text' name='EntryID' onChange={this.EntryID.bind(this)} label="Enter Key here" />
-                        <div > Data: </div>
-                    <p>
-                        {nl2br(this.state.value)}
-                    </p>
-                    <div>
-                    <Row>
-                        <Col s={1}></Col>
-                        <Col s={5}>
-                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{backgroundColor : '#145CFF'}}>Read Data</Button>
+                        <Col s={4}></Col>
+                        <Col s={4}>
+                            <div > Parameters: </div>
+                            <Input s={12} type='password' onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />
+                            <Input s={12} type='text' name='EntryID' onChange={this.onKeyChange.bind(this)} label="Enter Key here" />
+                            <div > Data: </div>
+                            <p>
+                                {nl2br(this.state.value)}
+                            </p>
+                            <div>
+                                <Row>
+                                    <Col s={1}></Col>
+                                    <Col s={5}>
+                                        <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ backgroundColor: '#145CFF' }}>Read Data</Button>
+                                    </Col>
+                                    <Col s={5}>
+                                        <Button onClick={this.onDownloadFile} className="btn waves-effect waves-light" style={{ backgroundColor: '#145CFF' }}>Download File</Button>
+                                    </Col>
+                                    <Col s={1}></Col>
+                                </Row>
+                            </div>
                         </Col>
-                        <Col s={5}>
-                    <Button className="btn waves-effect waves-light"  style={{backgroundColor : '#145CFF'}}>Download File</Button>
-                        </Col>
-                        <Col s={1}></Col>
-                    </Row>
-                    </div>
-                    </Col>
-                    <Col s={4}></Col>
+                        <Col s={4}></Col>
                     </Row>
                 </form>
             </div>

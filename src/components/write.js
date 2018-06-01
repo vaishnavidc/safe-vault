@@ -7,44 +7,49 @@ import CryptoJS from 'crypto-js';
 import FileEncryptor from 'file-encryptor'
 
 import getWeb3 from '../utils/getWeb3'
+import Config from '../config/config'
+
 import ipfs from '../ipfs';
-import read from './read';
 
 const factor = 1000000000000000000;
-
-// Previous working contract
-// const contractAddress = '0xbdf49d6ecb6b608e7cd802e11f9a38d514140b50'
 
 // Current test contract
 const contractAddress = '0xd65e45f8cd1ea771149c5fce10f551e4a5ef41cd'
 
+// Contract instance
 var storageContract
+
+// Accounts
 var mAccounts
+
+// Data object
 var data = {
     key: '',
     value: '',
     ipfsHash: ''
 }
 
+// Encrypted Data object
 var encryptedData = {
     value: '',
     ipfsHash: ''
 }
 
+// Web3 instance
 var web3 = null
 
+// Gas price on the blockchain
 var gasPrice = 0
+// Fee to be charged to the user
 var feeToCharge = 0
 
+// Private key of the user (used for encryption)
 var privateKey = ''
 
+// Encryption parameters
 var keySize = 256;
 var ivSize = 128;
 var iterations = 100;
-
-var ETHToUSDExchangeRate = 500;
-var dataWriteCharge = 1;
-var fileUploadCharge = 5;
 
 class Write extends Component {
     constructor(props) {
@@ -88,14 +93,12 @@ class Write extends Component {
 
     encrypt(msg, pass) {
         var salt = CryptoJS.lib.WordArray.random(128 / 8);
-
         var key = CryptoJS.PBKDF2(pass, salt, {
             keySize: keySize / 32,
             iterations: iterations
         });
 
         var iv = CryptoJS.lib.WordArray.random(128 / 8);
-
         var encrypted = CryptoJS.AES.encrypt(msg, key, {
             iv: iv,
             padding: CryptoJS.pad.Pkcs7,
@@ -109,14 +112,14 @@ class Write extends Component {
 
     estimateGas() {
         if (data.value != '' && data.ipfsHash != '') {
-            feeToCharge = (fileUploadCharge / ETHToUSDExchangeRate + dataWriteCharge / ETHToUSDExchangeRate)
+            feeToCharge = (Config.fileUploadCharge / Config.ETHToUSDExchangeRate + Config.dataWriteCharge / Config.ETHToUSDExchangeRate)
             encryptedData.value = this.encrypt(data.value, privateKey)
             encryptedData.ipfsHash = this.encrypt(data.ipfsHash, privateKey)
         } else if (data.value != '' && data.ipfsHash == '') {
-            feeToCharge = dataWriteCharge / ETHToUSDExchangeRate
+            feeToCharge = Config.dataWriteCharge / Config.ETHToUSDExchangeRate
             encryptedData.value = this.encrypt(data.value, privateKey)
         } else if (data.value == '' && data.ipfsHash != '') {
-            feeToCharge = fileUploadCharge / ETHToUSDExchangeRate
+            feeToCharge = Config.fileUploadCharge / Config.ETHToUSDExchangeRate
             encryptedData.ipfsHash = this.encrypt(data.ipfsHash, privateKey)
         }
 
@@ -157,10 +160,7 @@ class Write extends Component {
                 var event = storageContract.DataAdded()
                 event.watch((err, res) => {
                     if (err === null) {
-                        this.setState({ transactionStateMessage: "Data has been saved in the blockchain. You can query data from the blockchain with this key." })
                         alert("Transaction has been mined.")
-                    } else {
-                        this.setState({ transactionStateMessage: "Please choose a unique key. This key already exists." })
                     }
                 })
             }
@@ -168,7 +168,7 @@ class Write extends Component {
 
     }
 
-    submit(event) {
+    onSaveData(event) {
         event.preventDefault();
         if (data.value === '' && this.state.buffer == '') {
             alert("Please enter data or select file to upload")
@@ -190,7 +190,7 @@ class Write extends Component {
     }
 
     openConfirmationDialog() {
-        var retVal = confirm("Transaction cost will be " + (((gasPrice * this.state.gasLimit) / factor + feeToCharge) * ETHToUSDExchangeRate).toString() + " USD " + "Do you want to continue ?");
+        var retVal = confirm("Transaction cost will be " + (((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate).toString() + " USD " + "Do you want to continue ?");
         if (retVal == true) {
             if (data.ipfsHash != 0) this.uploadFile()
             else this.addData()
@@ -201,25 +201,26 @@ class Write extends Component {
         }
     }
 
-    id1Handler(event) {
+    onKeyChange(event) {
         data.key = event.target.value
     }
 
-    id2Handler(event) {
+    onValueChange(event) {
         data.value = event.target.value
     }
 
-    privateKeyHandler(event) {
+    onPrivateKeyChange(event) {
         privateKey = event.target.value
     }
 
     uploadFile = async () => {
         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
-            console.log(err, ipfsHash);
             if (err == null) {
                 data.ipfsHash = ipfsHash[0].hash
                 console.log(data.ipfsHash)
                 this.addData()
+            } else {
+                console.log(err);
             }
         })
     };
@@ -234,7 +235,6 @@ class Write extends Component {
     };
 
     convertToBuffer = async (reader) => {
-        console.log(reader)
         const buffer = await Buffer.from(reader.result);
         this.setState({ buffer: buffer });
         data.ipfsHash = 'QmVunwR4mvC4F5eTYWCGU3Baq9kmaTyRPot6nRGp24D4aJ'
@@ -243,19 +243,19 @@ class Write extends Component {
     render() {
         return (
             <div>
-                <form onSubmit={this.submit.bind(this)}>
+                <form onSubmit={this.onSaveData.bind(this)}>
                     <br />
                     <Row style={{ marginBottom: 0 }}>
                         <Col s={3}></Col>
                         <Col s={6}>
-                            <Input s={12} type='text' onChange={this.id1Handler.bind(this)} name='ID1' label="Enter Key here" />
+                            <Input s={12} type='text' onChange={this.onKeyChange.bind(this)} name='ID1' label="Enter Key here" />
                             <div > Data: </div>
-                            <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.id2Handler.bind(this)} label="Value" name='ID2' />
+                            <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.onValueChange.bind(this)} label="Value" name='ID2' />
                             <input
                                 type="file"
                                 onChange={this.captureFile}
                             />
-                            <Input s={12} type="password" onChange={this.privateKeyHandler.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
+                            <Input s={12} type="password" onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
                             <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor: '#004EFF' }}>Save Data</Button>
                         </Col>
                         <Col s={3}></Col>

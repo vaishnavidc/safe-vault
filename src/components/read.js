@@ -120,7 +120,24 @@ class Read extends Component {
         link.download = fileHash;
         link.href = "https://ipfs.io/ipfs/" + fileHash;
         document.body.appendChild(link);
-        link.click();
+        // link.click();
+
+        var request = new XMLHttpRequest();
+        request.open('GET', link.href, true);
+        request.responseType = 'blob';
+        request.onload = () => {
+            var eReader = new FileReader();
+            eReader.readAsText(request.response);
+            eReader.onload = (e) => {
+                var decrypted = CryptoJS.AES.decrypt(e.target.result, "password").toString(CryptoJS.enc.Latin1);
+                var a = document.createElement("a");
+                a.href = decrypted;
+                a.download = fileHash + '.png'
+                document.body.appendChild(a);
+                a.click();
+            };
+        };
+        request.send();
     }
 
     render() {
@@ -133,7 +150,7 @@ class Read extends Component {
                             <Label style={{ color: 'blue' }}>Please enter the password that you used to encrypt this data when you stored it using Write</Label>
 
                             <Input s={12} type='password' onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />
-                            <br/>
+                            <br />
                             <Label style={{ color: 'blue' }}>Please enter the index key that you used when you encrypyted your data or file</Label>
 
                             <Input s={12} type='text' name='EntryID' onChange={this.onKeyChange.bind(this)} label="Enter Key here" />

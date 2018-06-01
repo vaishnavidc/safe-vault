@@ -198,14 +198,14 @@ class Write extends Component {
     }
 
     openConfirmationDialog() {
-        var retVal = confirm("Transaction cost will be " + (((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate).toString() + " USD " + "Do you want to continue ?");
+        var retVal = confirm("Transaction cost will be " + Math.round(((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate) + " USD " + "Do you want to continue ?");
         if (retVal == true) {
             if (data.ipfsHash != 0) {
-                this.setState({ currentStatus: "Uploading file.." })
+                this.setState({ currentStatus: "Please wait. Uploading file.." })
                 this.uploadFile()
             }
             else {
-                this.setState({ currentStatus: "Adding data.." })
+                this.setState({ currentStatus: "Please wait. Adding data.." })
                 this.addData()
             }
             return true;
@@ -232,7 +232,7 @@ class Write extends Component {
             if (err == null) {
                 data.ipfsHash = ipfsHash[0].hash
                 console.log(data.ipfsHash)
-                this.setState({ currentStatus: "Adding data.." })
+                this.setState({ currentStatus: "Please wait. Adding data.." })
                 this.addData()
             } else {
                 console.log(err);
@@ -245,20 +245,11 @@ class Write extends Component {
         event.preventDefault()
         const file = event.target.files[0]
         let reader = new window.FileReader()
-        // reader.readAsArrayBuffer(file)
         reader.readAsDataURL(file)
 
         reader.onloadend = (e) => {
             fileContent = e.target.result;
             var encrypted = CryptoJS.AES.encrypt(fileContent, "password")
-
-            // var a = document.createElement("a");
-            // a.href = 'data:application/octet-stream,' + encrypted;
-            // a.download = file.name + '.encrypted'
-            // document.body.appendChild(a);
-            // a.click();
-
-            console.log(encrypted.toString())
 
             var eFile = new File([encrypted.toString()], "file.encrypted", {type: "text/plain"})
             let eReader = new FileReader()
@@ -266,26 +257,11 @@ class Write extends Component {
             eReader.onloadend = (e) => {
                 this.convertToBuffer(eReader)
             }
-
-            // var request = new XMLHttpRequest();
-            // request.open('GET', a.href, true);
-            // request.responseType = 'blob';
-            // request.onload = () => {
-            //     var eReader = new FileReader();
-            //     eReader.readAsArrayBuffer(request.response);
-            //     eReader.onload = (e) => {
-            //         this.convertToBuffer(eReader)
-            //     };
-            // };
-            // request.send();
-
-            // this.convertToBuffer(reader)
         }
     };
 
     convertToBuffer = async (reader) => {
         const buffer = await Buffer.from(reader.result);
-        // console.log(buffer)
         this.setState({ buffer: buffer });
         data.ipfsHash = 'QmVunwR4mvC4F5eTYWCGU3Baq9kmaTyRPot6nRGp24D4aJ'
     };

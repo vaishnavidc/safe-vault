@@ -3,6 +3,7 @@ import { Input, Row, Button, Col } from 'react-materialize';
 import { Label } from 'react-bootstrap'
 import nl2br from 'react-newline-to-break';
 import CryptoJS from 'crypto-js';
+import mime from 'mime-types';
 
 import getWeb3 from '../utils/getWeb3'
 
@@ -120,7 +121,6 @@ class Read extends Component {
         link.download = fileHash;
         link.href = "https://ipfs.io/ipfs/" + fileHash;
         document.body.appendChild(link);
-        // link.click();
 
         var request = new XMLHttpRequest();
         request.open('GET', link.href, true);
@@ -132,7 +132,11 @@ class Read extends Component {
                 var decrypted = CryptoJS.AES.decrypt(e.target.result, "password").toString(CryptoJS.enc.Latin1);
                 var a = document.createElement("a");
                 a.href = decrypted;
-                a.download = fileHash + '.png'
+                let split1 = decrypted.toString().split("data:")
+                let split2 = split1[1].split(";base64")
+                let type = split2[0]
+
+                a.download = fileHash + '.' + mime.extension(type)
                 document.body.appendChild(a);
                 a.click();
             };

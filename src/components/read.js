@@ -90,7 +90,7 @@ class Read extends Component {
         return storageContract.getData.call(key, { from: mAccounts[0] }, ((error, result) => {
             var decryptedData = this.decrypt(result[0], privateKey).toString(CryptoJS.enc.Utf8)
             fileHash = this.decrypt(result[1], privateKey).toString(CryptoJS.enc.Utf8)
-            this.setState({ 
+            this.setState({
                 value: decryptedData
             })
         }))
@@ -130,8 +130,12 @@ class Read extends Component {
                     <Row style={{ marginBottom: 0 }}>
                         <Col s={4}></Col>
                         <Col s={4}>
-                            <div > Parameters: </div>
+                            <Label style={{ color: 'blue' }}>Please enter the password that you used to encrypt this data when you stored it using Write</Label>
+
                             <Input s={12} type='password' onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />
+                            <br/>
+                            <Label style={{ color: 'blue' }}>Please enter the index key that you used when you encrypyted your data or file</Label>
+
                             <Input s={12} type='text' name='EntryID' onChange={this.onKeyChange.bind(this)} label="Enter Key here" />
                             <div > Data: </div>
                             <p>

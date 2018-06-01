@@ -57,7 +57,8 @@ class Write extends Component {
         this.state = {
             gasLimit: 0,
             transactionStateMessage: '',
-            buffer: ''
+            buffer: '',
+            currentStatus: ''
         }
     }
 
@@ -133,6 +134,7 @@ class Write extends Component {
             } else {
                 console.log("Estimated startGas: " + result)
                 this.setState({ gasLimit: result })
+                this.setState({ currentStatus: "Gas estimated." })
                 this.openConfirmationDialog()
             }
         }))
@@ -156,10 +158,12 @@ class Write extends Component {
             value: web3.toWei(feeToCharge, 'ether')
         }, ((error, result) => {
             if (error === null) {
+                this.setState({ currentStatus: "Transaction has gone through." })
                 alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
                 var event = storageContract.DataAdded()
                 event.watch((err, res) => {
                     if (err === null) {
+                        this.setState({ currentStatus: "Transaction has been mined." })
                         alert("Transaction has been mined.")
                     }
                 })
@@ -170,6 +174,7 @@ class Write extends Component {
 
     onSaveData(event) {
         event.preventDefault();
+        this.setState({ currentStatus: "Estimating gas.." })
         if (data.value === '' && this.state.buffer == '') {
             alert("Please enter data or select file to upload")
             return
@@ -192,8 +197,14 @@ class Write extends Component {
     openConfirmationDialog() {
         var retVal = confirm("Transaction cost will be " + (((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate).toString() + " USD " + "Do you want to continue ?");
         if (retVal == true) {
-            if (data.ipfsHash != 0) this.uploadFile()
-            else this.addData()
+            if (data.ipfsHash != 0) {
+                this.setState({ currentStatus: "Uploading file.." })
+                this.uploadFile()
+            }
+            else {
+                this.setState({ currentStatus: "Adding data.." })
+                this.addData()
+            }
             return true;
         }
         else {
@@ -218,6 +229,7 @@ class Write extends Component {
             if (err == null) {
                 data.ipfsHash = ipfsHash[0].hash
                 console.log(data.ipfsHash)
+                this.setState({ currentStatus: "Adding data.." })
                 this.addData()
             } else {
                 console.log(err);
@@ -246,15 +258,26 @@ class Write extends Component {
                 <form onSubmit={this.onSaveData.bind(this)}>
                     <br />
                     <Row style={{ marginBottom: 0 }}>
+
                         <Col s={3}></Col>
                         <Col s={6}>
+                            <Label style={{ color: 'blue' }}>{this.state.currentStatus}</Label>
+                            <Label style={{ color: 'blue' }}>Please enter a key that you can use later to read back your information, this is like an index key</Label>
+                            <br />
                             <Input s={12} type='text' onChange={this.onKeyChange.bind(this)} name='ID1' label="Enter Key here" />
+                            <Label style={{ color: 'blue' }}>Either type or copy and paste any text here that you would like stored and encrypted on the blockchain</Label>
                             <div > Data: </div>
                             <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.onValueChange.bind(this)} label="Value" name='ID2' />
+                            <Label style={{ color: 'blue' }}>Please select a document, preferably a pdf, to store and upload. The document will be encrypted to protect it</Label>
+                            <br />
                             <input
                                 type="file"
                                 onChange={this.captureFile}
                             />
+                            <br />
+                            <br />
+                            <Label style={{ color: 'blue' }}>Please enter a password here that will be ued to encrypt your data and file. Do not forget this password as you will need it to read your data or file later</Label>
+        
                             <Input s={12} type="password" onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
                             <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor: '#004EFF' }}>Save Data</Button>
                         </Col>

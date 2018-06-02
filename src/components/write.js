@@ -275,7 +275,9 @@ class Write extends Component {
 
                         <Col s={3}></Col>
                         <Col s={6}>
-                            <Label style={{ color: 'blue' }}>{this.state.currentStatus}</Label>
+                       
+                            <Label style={{ color: 'blue', marginLeft : '50%', marginRight : '50%' }}>{this.state.currentStatus}</Label>
+                        
                             <br />
                             <br/>
                             <Label style={{ color: 'blue' }}>Save any information on the blockchain fully encrypted. The cost is $1 for data and $5 for a document. Please remember your private key as this will be used to decrypt and read your information when you need it. Use BlockSave to save contracts and other important information that need to be public, but secure and encrypted. BlockSave is useful for Legal, Real Estate, Insurance, Financial contracts and for many other industries.</Label>
@@ -298,7 +300,14 @@ class Write extends Component {
                             <Label style={{ color: 'blue' }}>Please enter a password here that will be ued to encrypt your data and file. Do not forget this password as you will need it to read your data or file later</Label>
 
                             <Input s={12} type="password" onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
+                            <Row>
+                                
+                        <Col s={4}></Col>
+                        <Col s={4}>
                             <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor: '#004EFF' }}>Save Data</Button>
+                        </Col>
+                        <Col s={4}></Col>
+                            </Row>
                         </Col>
                         <Col s={3}></Col>
                     </Row>

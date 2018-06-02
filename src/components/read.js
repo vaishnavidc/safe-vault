@@ -170,7 +170,7 @@ class Read extends Component {
                     <Row style={{ marginBottom: 0 }}>
                         <Col s={3}></Col>
                         <Col s={6}>
-                            <Label style={{ color: 'blue' }}>{this.state.currentStatus}</Label>
+                            <Label style={{ color: 'blue', marginLeft : '50%', marginRight : '50%' }}>{this.state.currentStatus}</Label>
                             <br />
                             <br/>
                             <Label style={{ color: 'blue' }}>Please enter the password that you used to encrypt this data when you stored it using Write</Label>

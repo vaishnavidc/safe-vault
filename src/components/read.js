@@ -35,7 +35,8 @@ class Read extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            value: ''
+            value: '',
+            currentStatus: 'status'
         }
     }
 
@@ -94,6 +95,7 @@ class Read extends Component {
             this.setState({
                 value: decryptedData
             })
+            this.setState({ currentStatus: "Data read." })
         }))
     }
 
@@ -103,6 +105,7 @@ class Read extends Component {
             alert("All fields are required");
         }
         else {
+            this.setState({ currentStatus: "Reading data.." })
             this.getData()
         }
     }
@@ -117,6 +120,11 @@ class Read extends Component {
 
     onDownloadFile(event) {
         event.preventDefault();
+        if (fileHash === '') {
+            alert("File not available.")
+            return
+        }
+        // this.setState({ currentStatus: "Downloading file. Please wait.." })
         var link = document.createElement("a");
         link.download = fileHash;
         link.href = "https://ipfs.io/ipfs/" + fileHash;
@@ -129,9 +137,18 @@ class Read extends Component {
             var eReader = new FileReader();
             eReader.readAsText(request.response);
             eReader.onload = (e) => {
-                var decrypted = CryptoJS.AES.decrypt(e.target.result, "password").toString(CryptoJS.enc.Latin1);
+                // this.setState({ currentStatus: "Decrypting file. Please wait.." })
+                // var decrypted = CryptoJS.AES.decrypt(e.target.result, privateKey).toString(CryptoJS.enc.Latin1);
+                var decrypted = this.decrypt(e.target.result.toString(), privateKey)
                 var a = document.createElement("a");
                 a.href = decrypted;
+
+                if (!decrypted.toString().includes("data")) {
+                    console.log(decrypted)
+                    alert("Error in decryption. Most likely caused by the wrong private key.")
+                    return;
+                }
+
                 let split1 = decrypted.toString().split("data:")
                 let split2 = split1[1].split(";base64")
                 let type = split2[0]
@@ -139,6 +156,8 @@ class Read extends Component {
                 a.download = fileHash + '.' + mime.extension(type)
                 document.body.appendChild(a);
                 a.click();
+
+                this.setState({ currentStatus: "File downloaded." })
             };
         };
         request.send();
@@ -149,8 +168,11 @@ class Read extends Component {
             <div>
                 <form onSubmit={this.onReadData.bind(this)}>
                     <Row style={{ marginBottom: 0 }}>
-                        <Col s={4}></Col>
-                        <Col s={4}>
+                        <Col s={3}></Col>
+                        <Col s={6}>
+                            <Label style={{ color: 'blue' }}>{this.state.currentStatus}</Label>
+                            <br />
+                            <br/>
                             <Label style={{ color: 'blue' }}>Please enter the password that you used to encrypt this data when you stored it using Write</Label>
 
                             <Input s={12} type='password' onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />

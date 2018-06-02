@@ -61,7 +61,7 @@ class Write extends Component {
             gasLimit: 0,
             transactionStateMessage: '',
             buffer: '',
-            currentStatus: ''
+            currentStatus: 'status'
         }
     }
 
@@ -96,6 +96,8 @@ class Write extends Component {
     }
 
     encrypt(msg, pass) {
+        this.setState({ currentStatus: "Encrypting file. Please wait.." })
+
         var salt = CryptoJS.lib.WordArray.random(128 / 8);
         var key = CryptoJS.PBKDF2(pass, salt, {
             keySize: keySize / 32,
@@ -145,7 +147,6 @@ class Write extends Component {
 
     getGasPrice() {
         web3.eth.getGasPrice(((err, res) => {
-            console.log("gasPrice: " + res)
             gasPrice = res
         }))
     }
@@ -161,12 +162,12 @@ class Write extends Component {
             value: web3.toWei(feeToCharge, 'ether')
         }, ((error, result) => {
             if (error === null) {
-                this.setState({ currentStatus: "Transaction has gone through." })
+                this.setState({ currentStatus: "Transaction has gone through. Please wait for it to mine.." })
                 alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
                 var event = storageContract.DataAdded()
                 event.watch((err, res) => {
                     if (err === null) {
-                        this.setState({ currentStatus: "Transaction has been mined." })
+                        this.setState({ currentStatus: "Transaction has been mined. You can read the data now." })
                         alert("Transaction has been mined.")
                     }
                 })
@@ -201,11 +202,11 @@ class Write extends Component {
         var retVal = confirm("Transaction cost will be " + Math.round(((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate) + " USD " + "Do you want to continue ?");
         if (retVal == true) {
             if (data.ipfsHash != 0) {
-                this.setState({ currentStatus: "Please wait. Uploading file.." })
+                this.setState({ currentStatus: "Uploading file. Please wait.." })
                 this.uploadFile()
             }
             else {
-                this.setState({ currentStatus: "Please wait. Adding data.." })
+                this.setState({ currentStatus: "Adding data. Please wait.." })
                 this.addData()
             }
             return true;
@@ -231,8 +232,7 @@ class Write extends Component {
         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
             if (err == null) {
                 data.ipfsHash = ipfsHash[0].hash
-                console.log(data.ipfsHash)
-                this.setState({ currentStatus: "Please wait. Adding data.." })
+                this.setState({ currentStatus: "Adding data. Please wait.." })
                 this.addData()
             } else {
                 console.log(err);
@@ -249,9 +249,10 @@ class Write extends Component {
 
         reader.onloadend = (e) => {
             fileContent = e.target.result;
-            var encrypted = CryptoJS.AES.encrypt(fileContent, "password")
+            // var encrypted = CryptoJS.AES.encrypt(fileContent, privateKey)
+            var encrypted = this.encrypt(fileContent.toString(), privateKey)
 
-            var eFile = new File([encrypted.toString()], "file.encrypted", {type: "text/plain"})
+            var eFile = new File([encrypted.toString()], "file.encrypted", { type: "text/plain" })
             let eReader = new FileReader()
             eReader.readAsArrayBuffer(eFile)
             eReader.onloadend = (e) => {
@@ -270,13 +271,16 @@ class Write extends Component {
         return (
             <div>
                 <form onSubmit={this.onSaveData.bind(this)}>
-                    <br />
                     <Row style={{ marginBottom: 0 }}>
 
                         <Col s={3}></Col>
                         <Col s={6}>
                             <Label style={{ color: 'blue' }}>{this.state.currentStatus}</Label>
                             <br />
+                            <br/>
+                            <Label style={{ color: 'blue' }}>Save any information on the blockchain fully encrypted. The cost is $1 for data and $5 for a document. Please remember your private key as this will be used to decrypt and read your information when you need it. Use BlockSave to save contracts and other important information that need to be public, but secure and encrypted. BlockSave is useful for Legal, Real Estate, Insurance, Financial contracts and for many other industries.</Label>
+                            <br/>
+                            <br/>
                             <Label style={{ color: 'blue' }}>Please enter a key that you can use later to read back your information, this is like an index key</Label>
                             <br />
                             <Input s={12} type='text' onChange={this.onKeyChange.bind(this)} name='ID1' label="Enter Key here" />

@@ -36,7 +36,7 @@ class Read extends Component {
         super(props);
         this.state = {
             value: '',
-            currentStatus: 'status'
+            currentStatus: ''
         }
     }
 
@@ -124,7 +124,7 @@ class Read extends Component {
             alert("File not available.")
             return
         }
-        // this.setState({ currentStatus: "Downloading file. Please wait.." })
+        this.setState({ currentStatus: "Downloading file. Please wait.." })
         var link = document.createElement("a");
         link.download = fileHash;
         link.href = "https://ipfs.io/ipfs/" + fileHash;
@@ -137,14 +137,13 @@ class Read extends Component {
             var eReader = new FileReader();
             eReader.readAsText(request.response);
             eReader.onload = (e) => {
-                // this.setState({ currentStatus: "Decrypting file. Please wait.." })
-                // var decrypted = CryptoJS.AES.decrypt(e.target.result, privateKey).toString(CryptoJS.enc.Latin1);
-                var decrypted = this.decrypt(e.target.result.toString(), privateKey)
+                this.setState({ currentStatus: "Decrypting file. Please wait.." })
+                var decrypted = CryptoJS.AES.decrypt(e.target.result, privateKey).toString(CryptoJS.enc.Latin1);
+                // var decrypted = this.decrypt(e.target.result.toString(), privateKey)
                 var a = document.createElement("a");
                 a.href = decrypted;
 
                 if (!decrypted.toString().includes("data")) {
-                    console.log(decrypted)
                     alert("Error in decryption. Most likely caused by the wrong private key.")
                     return;
                 }
@@ -170,7 +169,7 @@ class Read extends Component {
                     <Row style={{ marginBottom: 0 }}>
                         <Col s={3}></Col>
                         <Col s={6}>
-                            <Label style={{ color: 'blue', marginLeft : '50%', marginRight : '50%' }}>{this.state.currentStatus}</Label>
+                            <Label>{this.state.currentStatus}</Label>
                             <br />
                             <br/>
                             <Label style={{ color: 'blue' }}>Please enter the password that you used to encrypt this data when you stored it using Write</Label>
@@ -191,7 +190,7 @@ class Read extends Component {
                                         <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ backgroundColor: '#145CFF' }}>Read Data</Button>
                                     </Col>
                                     <Col s={5}>
-                                        <Button onClick={this.onDownloadFile} className="btn waves-effect waves-light" style={{ backgroundColor: '#145CFF' }}>Download File</Button>
+                                        <Button onClick={this.onDownloadFile.bind(this)} className="btn waves-effect waves-light" style={{ backgroundColor: '#145CFF' }}>Download File</Button>
                                     </Col>
                                     <Col s={1}></Col>
                                 </Row>

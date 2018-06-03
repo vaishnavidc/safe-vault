@@ -61,7 +61,7 @@ class Write extends Component {
             gasLimit: 0,
             transactionStateMessage: '',
             buffer: '',
-            currentStatus: 'status'
+            currentStatus: ''
         }
     }
 
@@ -96,7 +96,7 @@ class Write extends Component {
     }
 
     encrypt(msg, pass) {
-        this.setState({ currentStatus: "Encrypting file. Please wait.." })
+        this.setState({ currentStatus: "Encrypting data. Please wait.." })
 
         var salt = CryptoJS.lib.WordArray.random(128 / 8);
         var key = CryptoJS.PBKDF2(pass, salt, {
@@ -152,6 +152,7 @@ class Write extends Component {
     }
 
     addData() {
+        this.setState({ currentStatus: "Adding data. Please wait.." })
         if (data.ipfsHash != '') {
             encryptedData.ipfsHash = this.encrypt(data.ipfsHash, privateKey)
         }
@@ -202,11 +203,9 @@ class Write extends Component {
         var retVal = confirm("Transaction cost will be " + Math.round(((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate) + " USD " + "Do you want to continue ?");
         if (retVal == true) {
             if (data.ipfsHash != 0) {
-                this.setState({ currentStatus: "Uploading file. Please wait.." })
                 this.uploadFile()
             }
             else {
-                this.setState({ currentStatus: "Adding data. Please wait.." })
                 this.addData()
             }
             return true;
@@ -229,15 +228,16 @@ class Write extends Component {
     }
 
     uploadFile = async () => {
-        await ipfs.add(this.state.buffer, (err, ipfsHash) => {
-            if (err == null) {
-                data.ipfsHash = ipfsHash[0].hash
-                this.setState({ currentStatus: "Adding data. Please wait.." })
-                this.addData()
-            } else {
-                console.log(err);
-            }
-        })
+        this.setState({ currentStatus: "Encrypting file. Please wait.." })
+        var encrypted = CryptoJS.AES.encrypt(fileContent, privateKey)
+        // var encrypted = this.encrypt(fileContent.toString(), privateKey)
+
+        var eFile = new File([encrypted.toString()], "file.encrypted", { type: "text/plain" })
+        let eReader = new FileReader()
+        eReader.readAsArrayBuffer(eFile)
+        eReader.onloadend = (e) => {
+            this.convertToBuffer(eReader)
+        }
     };
 
     captureFile = (event) => {
@@ -249,22 +249,22 @@ class Write extends Component {
 
         reader.onloadend = (e) => {
             fileContent = e.target.result;
-            // var encrypted = CryptoJS.AES.encrypt(fileContent, privateKey)
-            var encrypted = this.encrypt(fileContent.toString(), privateKey)
-
-            var eFile = new File([encrypted.toString()], "file.encrypted", { type: "text/plain" })
-            let eReader = new FileReader()
-            eReader.readAsArrayBuffer(eFile)
-            eReader.onloadend = (e) => {
-                this.convertToBuffer(eReader)
-            }
+            data.ipfsHash = 'QmVunwR4mvC4F5eTYWCGU3Baq9kmaTyRPot6nRGp24D4aJ'
         }
     };
 
     convertToBuffer = async (reader) => {
         const buffer = await Buffer.from(reader.result);
         this.setState({ buffer: buffer });
-        data.ipfsHash = 'QmVunwR4mvC4F5eTYWCGU3Baq9kmaTyRPot6nRGp24D4aJ'
+
+        await ipfs.add(this.state.buffer, (err, ipfsHash) => {
+            if (err == null) {
+                data.ipfsHash = ipfsHash[0].hash
+                this.addData()
+            } else {
+                console.log(err);
+            }
+        })
     };
 
     render() {
@@ -275,19 +275,18 @@ class Write extends Component {
 
                         <Col s={3}></Col>
                         <Col s={6}>
-                       
-                            <Label style={{ color: 'blue', marginLeft : '50%', marginRight : '50%' }}>{this.state.currentStatus}</Label>
-                        
+
+                            <Label>{this.state.currentStatus}</Label>
+
                             <br />
-                            <br/>
+                            <br />
                             <Label style={{ color: 'blue' }}>Save any information on the blockchain fully encrypted. The cost is $1 for data and $5 for a document. Please remember your private key as this will be used to decrypt and read your information when you need it. Use BlockSave to save contracts and other important information that need to be public, but secure and encrypted. BlockSave is useful for Legal, Real Estate, Insurance, Financial contracts and for many other industries.</Label>
-                            <br/>
-                            <br/>
+                            <br />
+                            <br />
                             <Label style={{ color: 'blue' }}>Please enter a key that you can use later to read back your information, this is like an index key</Label>
                             <br />
                             <Input s={12} type='text' onChange={this.onKeyChange.bind(this)} name='ID1' label="Enter Key here" />
                             <Label style={{ color: 'blue' }}>Either type or copy and paste any text here that you would like stored and encrypted on the blockchain</Label>
-                            <div > Data: </div>
                             <textarea rows="30" style={{ "height": "250px", "maxHeight": "700px" }} maxLength="3000" className="textarea" type='text' onChange={this.onValueChange.bind(this)} label="Value" name='ID2' />
                             <Label style={{ color: 'blue' }}>Please select a document, preferably a pdf, to store and upload. The document will be encrypted to protect it</Label>
                             <br />
@@ -301,12 +300,12 @@ class Write extends Component {
 
                             <Input s={12} type="password" onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
                             <Row>
-                                
-                        <Col s={4}></Col>
-                        <Col s={4}>
-                            <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor: '#004EFF' }}>Save Data</Button>
-                        </Col>
-                        <Col s={4}></Col>
+
+                                <Col s={4}></Col>
+                                <Col s={4}>
+                                    <Button className="btn waves-effect waves-light" type="submit" name="action" title='submit' style={{ display: 'block', margin: 0, backgroundColor: '#004EFF' }}>Save Data</Button>
+                                </Col>
+                                <Col s={4}></Col>
                             </Row>
                         </Col>
                         <Col s={3}></Col>

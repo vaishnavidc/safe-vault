@@ -7,8 +7,8 @@ import mime from 'mime-types';
 
 import getWeb3 from '../utils/getWeb3'
 
-// Current test contract
-const contractAddress = '0xd65e45f8cd1ea771149c5fce10f551e4a5ef41cd'
+// Current test contract on Ropsten testnet
+const contractAddress = '0x318cb3fb7933bb100ae5c57551f375c2093ae695'
 
 // Contract instance
 var storageContract

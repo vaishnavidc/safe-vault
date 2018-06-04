@@ -14,8 +14,8 @@ import { read } from 'fs';
 
 const factor = 1000000000000000000;
 
-// Current test contract
-const contractAddress = '0xd65e45f8cd1ea771149c5fce10f551e4a5ef41cd'
+// Current test contract on Ropsten testnet
+const contractAddress = '0x318cb3fb7933bb100ae5c57551f375c2093ae695'
 
 // Contract instance
 var storageContract
@@ -291,7 +291,7 @@ class Write extends Component {
                                 type="file"
                                 onChange={this.captureFile}
                             />
-                            <Label>Transaction cost: ${Math.round(((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate)}</Label>
+                            {/* <Label>Transaction cost: ${Math.round(((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate)}</Label> */}
                             <br />
                             <br />
                             <Label style={{ color: 'blue' }}>Please enter a password here that will be ued to encrypt your data and file. Do not forget this password as you will need it to read your data or file later</Label>

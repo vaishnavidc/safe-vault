@@ -4,7 +4,6 @@ import { Label } from 'react-bootstrap'
 import { Nav, NavItem } from 'react-bootstrap';
 import Textarea from 'react-expanding-textarea'
 import CryptoJS from 'crypto-js';
-import FileEncryptor from 'file-encryptor'
 
 import getWeb3 from '../utils/getWeb3'
 import Config from '../config/config'
@@ -200,7 +199,7 @@ class Write extends Component {
     }
 
     openConfirmationDialog() {
-        var retVal = confirm("Transaction cost will be $" + Math.round(((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate) + ". Do you want to continue ?");
+        var retVal = confirm("Transaction cost will be $" + ((gasPrice * this.state.gasLimit) / factor + feeToCharge * Config.ETHToUSDExchangeRate) + ". Do you want to continue ?");
         if (retVal == true) {
             if (data.ipfsHash != 0) {
                 this.uploadFile()
@@ -274,8 +273,6 @@ class Write extends Component {
                     <Row style={{ marginBottom: 0 }}>
                         <Col s={3}></Col>
                         <Col s={6}>
-                            <Label>{this.state.currentStatus}</Label>
-                            <br />
                             <br />
                             <Label style={{ color: 'blue' }}>Save any information on the blockchain fully encrypted. The cost is $1 for data and $5 for a document. Please remember your private key as this will be used to decrypt and read your information when you need it. Use BlockSave to save contracts and other important information that need to be public, but secure and encrypted. BlockSave is useful for Legal, Real Estate, Insurance, Financial contracts and for many other industries.</Label>
                             <br />
@@ -296,6 +293,8 @@ class Write extends Component {
                             <br />
                             <Label style={{ color: 'blue' }}>Please enter a password here that will be ued to encrypt your data and file. Do not forget this password as you will need it to read your data or file later</Label>
                             <Input s={12} type="password" onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
+                            <br/>
+                            <Label style={{ fontSize: '20px' }}>{this.state.currentStatus}</Label>
                             <Row>
                                 <Col s={4}></Col>
                                 <Col s={4}>

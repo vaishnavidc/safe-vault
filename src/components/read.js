@@ -169,7 +169,6 @@ class Read extends Component {
                     <Row style={{ marginBottom: 0 }}>
                         <Col s={3}></Col>
                         <Col s={6}>
-                            <Label>{this.state.currentStatus}</Label>
                             <br />
                             <br/>
                             <Label style={{ color: 'blue' }}>Please enter the password that you used to encrypt this data when you stored it using Write</Label>
@@ -183,7 +182,10 @@ class Read extends Component {
                             <p>
                                 {nl2br(this.state.value)}
                             </p>
+                            <Label style={{ fontSize: '20px' }}>{this.state.currentStatus}</Label>
                             <div>
+                            <br/>
+
                                 <Row>
                                     <Col s={1}></Col>
                                     <Col s={5}>

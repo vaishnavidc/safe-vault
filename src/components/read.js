@@ -169,23 +169,18 @@ class Read extends Component {
                     <Row style={{ marginBottom: 0 }}>
                         <Col s={3}></Col>
                         <Col s={6}>
-                            <br />
-                            <br/>
                             <Label style={{ color: 'blue' }}>Please enter the password that you used to encrypt this data when you stored it using Write</Label>
-
                             <Input s={12} type='password' onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to decrypt data)" />
                             <br />
-                            <Label style={{ color: 'blue' }}>Please enter the index key that you used when you encrypyted your data or file</Label>
-
+                            <Label style={{ color: 'blue' }}>Please enter the index key that you used when you encrypted your data or file</Label>
                             <Input s={12} type='text' name='EntryID' onChange={this.onKeyChange.bind(this)} label="Enter Key here" />
                             <div > Data: </div>
                             <p>
                                 {nl2br(this.state.value)}
                             </p>
-                            <Label style={{ fontSize: '20px' }}>{this.state.currentStatus}</Label>
+                            <Label style={{ fontSize: '20px', color: 'red' }}>{this.state.currentStatus}</Label>
                             <div>
-                            <br/>
-
+                                <br />
                                 <Row>
                                     <Col s={1}></Col>
                                     <Col s={5}>

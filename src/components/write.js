@@ -179,7 +179,7 @@ class Write extends Component {
     onSaveData(event) {
         event.preventDefault();
         this.setState({ currentStatus: "Estimating gas.." })
-        if (data.value === '' && this.state.buffer == '') {
+        if (data.value === '' && data.ipfsHash === '') {
             alert("Please enter data or select file to upload")
             return
         }
@@ -273,7 +273,6 @@ class Write extends Component {
                     <Row style={{ marginBottom: 0 }}>
                         <Col s={3}></Col>
                         <Col s={6}>
-                            <br />
                             <Label style={{ color: 'blue' }}>Save any information on the blockchain fully encrypted. The cost is $1 for data and $5 for a document. Please remember your private key as this will be used to decrypt and read your information when you need it. Use BlockSave to save contracts and other important information that need to be public, but secure and encrypted. BlockSave is useful for Legal, Real Estate, Insurance, Financial contracts and for many other industries.</Label>
                             <br />
                             <br />
@@ -288,13 +287,13 @@ class Write extends Component {
                                 type="file"
                                 onChange={this.captureFile}
                             />
-                            {/* <Label>Transaction cost: ${Math.round(((gasPrice * this.state.gasLimit) / factor + feeToCharge) * Config.ETHToUSDExchangeRate)}</Label> */}
                             <br />
                             <br />
                             <Label style={{ color: 'blue' }}>Please enter a password here that will be ued to encrypt your data and file. Do not forget this password as you will need it to read your data or file later</Label>
                             <Input s={12} type="password" onChange={this.onPrivateKeyChange.bind(this)} name='privateKey' label="Enter Private Key here (used to encrypt data)" />
-                            <br/>
-                            <Label style={{ fontSize: '20px' }}>{this.state.currentStatus}</Label>
+                            <br />
+                            <Label style={{ fontSize: '20px', color: 'red' }}>{this.state.currentStatus}</Label>
+                            <br />
                             <Row>
                                 <Col s={4}></Col>
                                 <Col s={4}>

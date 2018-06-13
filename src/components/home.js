@@ -5,21 +5,15 @@ class Company extends Component {
 
     componentWillMount(){
         this.props.history.push('/read');
-        document.title = "BlockSave" 
-    }
-
-    componentDidMount() {
-        
+        document.title = "BlockSave"
     }
 
     readBtnHandler(){
         this.props.history.push('/read');
-
     }
 
     writeBtnHandler(){
         this.props.history.push('/write');
-
     }
 
     render() {
@@ -41,6 +35,5 @@ class Company extends Component {
         )
     }
 }
-
 
 export default (Company);

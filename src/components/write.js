@@ -64,6 +64,12 @@ class Write extends Component {
         }
     }
 
+    componentWillUnmount() {
+            data.key = ''
+            data.value = ''
+            data.ipfsHash = ''
+    }
+
     componentWillMount() {
         getWeb3
             .then(results => {
@@ -173,7 +179,6 @@ class Write extends Component {
                 })
             }
         }))
-
     }
 
     onSaveData(event) {

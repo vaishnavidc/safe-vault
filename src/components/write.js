@@ -68,6 +68,9 @@ class Write extends Component {
         data.key = ''
         data.value = ''
         data.ipfsHash = ''
+
+        encryptedData.value = ''
+        encryptedData.ipfsHash = ''
     }
 
     componentWillMount() {
@@ -183,7 +186,6 @@ class Write extends Component {
 
     onSaveData(event) {
         event.preventDefault();
-        this.setState({ currentStatus: "Estimating gas.." })
         if (data.value === '' && data.ipfsHash === '') {
             alert("Please enter data or select file to upload")
             return
@@ -200,6 +202,7 @@ class Write extends Component {
             return
         }
 
+        this.setState({ currentStatus: "Estimating gas.." })
         this.estimateGas()
     }
 
@@ -232,7 +235,7 @@ class Write extends Component {
     }
 
     uploadFile = async () => {
-        this.setState({ currentStatus: "Encrypting file. Please wait.." })
+        this.setState({ currentStatus: "Encrypting and uploading file. Please wait.." })
         var encrypted = CryptoJS.AES.encrypt(fileContent, privateKey)
         // var encrypted = this.encrypt(fileContent.toString(), privateKey)
 

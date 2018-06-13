@@ -65,9 +65,9 @@ class Write extends Component {
     }
 
     componentWillUnmount() {
-            data.key = ''
-            data.value = ''
-            data.ipfsHash = ''
+        data.key = ''
+        data.value = ''
+        data.ipfsHash = ''
     }
 
     componentWillMount() {

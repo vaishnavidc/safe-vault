@@ -14,7 +14,10 @@ import { read } from 'fs';
 const factor = 1000000000000000000;
 
 // Current test contract on Ropsten testnet
-const contractAddress = '0x318cb3fb7933bb100ae5c57551f375c2093ae695'
+// const contractAddress = '0x318cb3fb7933bb100ae5c57551f375c2093ae695'
+
+// Current contract on Ethereum main net
+const contractAddress = '0x7e0dc1fe2f7a8b9db037aaf3e47244885a059620'
 
 // Contract instance
 var storageContract

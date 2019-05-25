@@ -10,14 +10,234 @@ import Config from '../config/config'
 
 import ipfs from '../ipfs';
 import { read } from 'fs';
+import { ECANCELED } from 'constants';
 
 const factor = 1000000000000000000;
 
 // Current test contract on Ropsten testnet
-// const contractAddress = '0x318cb3fb7933bb100ae5c57551f375c2093ae695'
+const contractAddress = '0xcd81e787248747aa53a4d3cb79000a113fe3f44b'
 
+// const contractAddress = '0x0B7E8B075F2914A7fFd9d3a3f5B61C15aaed2bDB'
+const abi = [
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_key",
+				"type": "string"
+			},
+			{
+				"name": "_value",
+				"type": "string"
+			},
+			{
+				"name": "_fileHash",
+				"type": "string"
+			}
+		],
+		"name": "addData",
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "WEI_T0_ETH_RATE",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "ETHToUSDExchangeRate",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "dataWriteCharge",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_charge",
+				"type": "uint256"
+			}
+		],
+		"name": "setDataWriteCharge",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_key",
+				"type": "string"
+			}
+		],
+		"name": "getData",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			},
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_charge",
+				"type": "uint256"
+			}
+		],
+		"name": "setFileUploadCharge",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_exchangeRate",
+				"type": "uint256"
+			}
+		],
+		"name": "setExchangeRate",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "fileUploadCharge",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "key",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"name": "value",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"name": "fileHash",
+				"type": "string"
+			}
+		],
+		"name": "DataAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	}
+]
 // Current contract on Ethereum main net
-const contractAddress = '0x7e0dc1fe2f7a8b9db037aaf3e47244885a059620'
+//const contractAddress = '0x7e0dc1fe2f7a8b9db037aaf3e47244885a059620'
 
 // Contract instance
 var storageContract
@@ -82,16 +302,28 @@ class Write extends Component {
                 web3 = results.web3
                 this.instantiateContract()
                 this.getGasPrice()
+                console.log("WEB 33333")
             })
             .catch(() => {
                 console.log('Error finding web3.')
             })
+        // window.addEventListener('load', () => {
+        //     if (typeof web3 !== 'undefined') {
+            //    web3 = new Web3(web3.currentProvider);
+        //     } else {
+        //         console.log('No web3? You should consider trying MetaMask!');
+        //         web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+        //     }
+        // });
     }
 
     instantiateContract() {
-        var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_fileHash", "type": "string" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [], "name": "WEI_T0_ETH_RATE", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "ETHToUSDExchangeRate", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "dataWriteCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setDataWriteCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }, { "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setFileUploadCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_exchangeRate", "type": "uint256" }], "name": "setExchangeRate", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "fileUploadCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }, { "indexed": false, "name": "fileHash", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }])
+        //var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_fileHash", "type": "string" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [], "name": "WEI_T0_ETH_RATE", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "ETHToUSDExchangeRate", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "dataWriteCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setDataWriteCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }, { "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setFileUploadCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_exchangeRate", "type": "uint256" }], "name": "setExchangeRate", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "fileUploadCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }, { "indexed": false, "name": "fileHash", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }])
+       
+       var contract = web3.eth.contract(abi)
         storageContract = contract.at(contractAddress);
-
+       // storageContract = contract
+        console.log(storageContract)
         web3.eth.getAccounts((error, accounts) => {
             if (accounts.length == 0) {
                 alert("Metamask not set up.")
@@ -140,16 +372,18 @@ class Write extends Component {
             encryptedData.ipfsHash = this.encrypt(data.ipfsHash, privateKey)
         }
 
-        return storageContract.addData.estimateGas(data.key, encryptedData.value, encryptedData.ipfsHash, {
+        console.log(feeToCharge)
+
+        return web3.eth.estimateGas({
             from: mAccounts[0],
             value: web3.toWei(feeToCharge, 'ether'),
             gasPrice: gasPrice
         }, ((error, result) => {
-            if (error != null) {
-                console.log(error)
+            if (error) {
+               // console.log(error)
             } else {
                 console.log("Estimated startGas: " + result)
-                this.setState({ gasLimit: result })
+                this.setState({ gasLimit: 3000000 })
                 this.setState({ currentStatus: "Gas estimated." })
                 this.openConfirmationDialog()
             }
@@ -167,24 +401,74 @@ class Write extends Component {
         if (data.ipfsHash != '') {
             encryptedData.ipfsHash = this.encrypt(data.ipfsHash, privateKey)
         }
-        return storageContract.addData(data.key, encryptedData.value, encryptedData.ipfsHash, {
+
+        // return storageContract.methods.addData(data.key, encryptedData.value, encryptedData.ipfsHash).send({
+        //     from: mAccounts[0],
+        //     gas: this.state.gasLimit,
+        //     gasPrice: gasPrice,
+        //     value: web3.toWei(feeToCharge, 'ether')
+        // },(error,result)=>{
+        //     if (!error) {
+        //         this.setState({ currentStatus: "Transaction has gone through. Please wait for it to mine.." })
+        //         alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
+        //         var event = storageContract.DataAdded()
+        //         event.watch((err, res) => {
+        //             if (err === null) {
+        //                 this.setState({ currentStatus: "Transaction has been mined. You can read the data now." })
+        //                 alert("Transaction has been mined.")
+        //             }
+        //         })
+        //     }
+        // })
+        console.log(data.key + " value1 "+ encryptedData.value + " value2 " + encryptedData.ipfsHash)
+        return storageContract.addData(data.key, encryptedData.value, encryptedData.ipfsHash,{
             from: mAccounts[0],
             gas: this.state.gasLimit,
             gasPrice: gasPrice,
             value: web3.toWei(feeToCharge, 'ether')
-        }, ((error, result) => {
-            if (error === null) {
-                this.setState({ currentStatus: "Transaction has gone through. Please wait for it to mine.." })
-                alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
-                var event = storageContract.DataAdded()
-                event.watch((err, res) => {
-                    if (err === null) {
-                        this.setState({ currentStatus: "Transaction has been mined. You can read the data now." })
-                        alert("Transaction has been mined.")
-                    }
-                })
-            }
-        }))
+        },function(error, result) {
+            // if (!error){
+            //     this.setState({ currentStatus: "Transaction has gone through. Please wait for it to mine.." })
+            //     alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
+            //     var event = storageContract.DataAdded()
+            //     event.watch((err, res) => {
+            //         if (err === null) {
+            //             this.setState({ currentStatus: "Transaction has been mined. You can read the data now." })
+            //             alert("Transaction has been mined.")
+            //         }
+            //     })
+            // }
+            if (!error) {
+                     //   this.setState({ currentStatus: "Transaction has gone through. Please wait for it to mine.." })
+                        alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
+                        // var event = storageContract.DataAdded()
+                        // event.watch((err, res) => {
+                        //     if (err === null) {
+                        //  //       this.setState({ currentStatus: "Transaction has been mined. You can read the data now." })
+                        //         alert("Transaction has been mined.")
+                        // }
+                }
+                //)
+          //  }
+          })    // return storageContract.methods.addData(data.key, encryptedData.value, encryptedData.ipfsHash,{
+        //     from: mAccounts[0],
+        //     gas: this.state.gasLimit,
+        //     gasPrice: gasPrice,
+        //     value: web3.toWei(feeToCharge, 'ether')
+        // }), ((error, result) => {
+        //     if (error === null) {
+        //         this.setState({ currentStatus: "Transaction has gone through. Please wait for it to mine.." })
+        //         alert("Transaction has gone through. You can check the status at ropsten.etherscan.io/tx/" + result)
+        //         var event = storageContract.DataAdded()
+        //         event.watch((err, res) => {
+        //             if (err === null) {
+        //                 this.setState({ currentStatus: "Transaction has been mined. You can read the data now." })
+        //                 alert("Transaction has been mined.")
+        //             }
+        //         })
+        //     }
+        // })
+
     }
 
     onSaveData(event) {
@@ -270,6 +554,7 @@ class Write extends Component {
         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
             if (err == null) {
                 data.ipfsHash = ipfsHash[0].hash
+                console.log("IPFS: " +data.ipfsHash)
                 this.addData()
             } else {
                 console.log(err);

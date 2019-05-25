@@ -5,9 +5,16 @@ let getWeb3 = new Promise(function(resolve, reject) {
     var results
     var web3 = window.web3
 
+    //to enable metamask
+    var ethereum = window.ethereum
+
     if (typeof web3 !== 'undefined') {
       web3 = new Web3(web3.currentProvider)
 
+      //enabling
+      ethereum.enable()
+      
+      
       results = {
         web3: web3
       }

@@ -4,14 +4,237 @@ import { Label } from 'react-bootstrap'
 import nl2br from 'react-newline-to-break';
 import CryptoJS from 'crypto-js';
 import mime from 'mime-types';
-
+import ipfs from '../ipfs';
 import getWeb3 from '../utils/getWeb3'
 
 // Current test contract on Ropsten testnet
 // const contractAddress = '0x318cb3fb7933bb100ae5c57551f375c2093ae695'
 
 // Current contract on Ethereum main net
-const contractAddress = '0x7e0dc1fe2f7a8b9db037aaf3e47244885a059620'
+//const contractAddress = '0x7e0dc1fe2f7a8b9db037aaf3e47244885a059620'
+
+
+
+
+const contractAddress = '0x0B7E8B075F2914A7fFd9d3a3f5B61C15aaed2bDB'
+const abi = [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "WEI_T0_ETH_RATE",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "ETHToUSDExchangeRate",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "dataWriteCharge",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "fileUploadCharge",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "value",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "fileHash",
+          "type": "string"
+        }
+      ],
+      "name": "DataAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_key",
+          "type": "string"
+        },
+        {
+          "name": "_value",
+          "type": "string"
+        },
+        {
+          "name": "_fileHash",
+          "type": "string"
+        }
+      ],
+      "name": "addData",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_exchangeRate",
+          "type": "uint256"
+        }
+      ],
+      "name": "setExchangeRate",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_charge",
+          "type": "uint256"
+        }
+      ],
+      "name": "setDataWriteCharge",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_charge",
+          "type": "uint256"
+        }
+      ],
+      "name": "setFileUploadCharge",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "_key",
+          "type": "string"
+        }
+      ],
+      "name": "getData",
+      "outputs": [
+        {
+          "name": "",
+          "type": "string"
+        },
+        {
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ]
 
 // Contract instance
 var storageContract
@@ -55,10 +278,15 @@ class Read extends Component {
     }
 
     instantiateContract() {
-        var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_fileHash", "type": "string" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [], "name": "WEI_T0_ETH_RATE", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "ETHToUSDExchangeRate", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "dataWriteCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setDataWriteCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }, { "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setFileUploadCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_exchangeRate", "type": "uint256" }], "name": "setExchangeRate", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "fileUploadCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }, { "indexed": false, "name": "fileHash", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }])
-        storageContract = contract.at(contractAddress);
-
+      //  var contract = web3.eth.contract([{ "constant": false, "inputs": [{ "name": "_key", "type": "string" }, { "name": "_value", "type": "string" }, { "name": "_fileHash", "type": "string" }], "name": "addData", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" }, { "constant": true, "inputs": [], "name": "WEI_T0_ETH_RATE", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "ETHToUSDExchangeRate", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "dataWriteCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setDataWriteCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "name": "_key", "type": "string" }], "name": "getData", "outputs": [{ "name": "", "type": "string" }, { "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "_charge", "type": "uint256" }], "name": "setFileUploadCharge", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "name": "_exchangeRate", "type": "uint256" }], "name": "setExchangeRate", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "fileUploadCharge", "outputs": [{ "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": false, "name": "key", "type": "string" }, { "indexed": false, "name": "value", "type": "string" }, { "indexed": false, "name": "fileHash", "type": "string" }], "name": "DataAdded", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "name": "previousOwner", "type": "address" }, { "indexed": true, "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }])
+            var contract = web3.eth.contract(abi)  
+      
+      storageContract = contract.at(contractAddress)
+        console.log(web3.eth.accounts)
+        console.log(web3.version)
         web3.eth.getAccounts((error, accounts) => {
+            console.log(accounts)
+            console.log(error)
             if (accounts.length == 0) {
                 alert("Metamask not set up.")
             }
@@ -92,14 +320,27 @@ class Read extends Component {
     }
 
     getData() {
-        return storageContract.getData.call(key, { from: mAccounts[0] }, ((error, result) => {
-            var decryptedData = this.decrypt(result[0], privateKey).toString(CryptoJS.enc.Utf8)
-            fileHash = this.decrypt(result[1], privateKey).toString(CryptoJS.enc.Utf8)
-            this.setState({
-                value: decryptedData
-            })
-            this.setState({ currentStatus: "Data read." })
-        }))
+        let that = this;
+        // return storageContract.methods.getData(key).call({ from: mAccounts[0] }, ((error, result) => {
+        //     var decryptedData = this.decrypt(result[0], privateKey).toString(CryptoJS.enc.Utf8)
+        //     fileHash = this.decrypt(result[1], privateKey).toString(CryptoJS.enc.Utf8)
+        //     this.setState({
+        //         value: decryptedData
+        //     })
+        //     this.setState({ currentStatus: "Data read." })
+        // }))
+
+        return storageContract.getData(key,function(error,result){
+            // console.log(this.decrypt)
+            var decryptedData = that.decrypt(result[0], privateKey).toString(CryptoJS.enc.Utf8)
+                fileHash = that.decrypt(result[1], privateKey).toString(CryptoJS.enc.Utf8)
+                console.log("FILE HASH:" +fileHash)
+                that.setState({
+                    value: decryptedData
+                })
+                that.setState({ currentStatus: "Data read." })
+            console.log(result)
+        })
     }
 
     onReadData(event) {
@@ -127,16 +368,20 @@ class Read extends Component {
             alert("File not available.")
             return
         }
+        this.setState({currentStatus:"DOWNLOADING"})
         this.setState({ currentStatus: "Downloading file. Please wait.." })
         var link = document.createElement("a");
         link.download = fileHash;
         link.href = "https://ipfs.io/ipfs/" + fileHash;
         document.body.appendChild(link);
+        this.setState({currentStatus: "WAITING FOR UPFS"})
 
         var request = new XMLHttpRequest();
         request.open('GET', link.href, true);
         request.responseType = 'blob';
+        this.setState({currentStatus: "WAITING FOR IPFS"})
         request.onload = () => {
+            this.setState({currentStatus: "inside request"})
             var eReader = new FileReader();
             eReader.readAsText(request.response);
             eReader.onload = (e) => {
@@ -163,6 +408,18 @@ class Read extends Component {
             };
         };
         request.send();
+
+        // ipfs.files.get(fileHash, function (err, files) {
+        //     if(err){
+        //         files.forEach((file) => {
+        //             console.log(file.path)
+        //             console.log("File content >> ",file.content.toString('utf8'))
+        //         })
+        //     }else{
+        //         console.log(err)
+        //     }
+            
+        // })
     }
 
     render() {
